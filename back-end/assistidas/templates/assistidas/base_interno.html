@@ -42,8 +42,11 @@
         <strong>Superação VD · Área interna</strong>
         <nav>
             <a href="{% url 'assistidas_lista' %}">Assistidas</a>
-            <a href="{% url 'admin:index' %}">Administração</a>
-            <a href="{% url 'admin:logout' %}">Sair ({{ request.user.get_username }})</a>
+            {% if request.user.is_staff %}<a href="{% url 'admin:index' %}">Administração</a>{% endif %}
+            <form class="sair" method="post" action="{% url 'sair' %}">
+                {% csrf_token %}
+                <button type="submit">Sair ({{ request.user.get_username }})</button>
+            </form>
         </nav>
     </header>
     <main>

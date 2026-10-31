@@ -1,0 +1,11 @@
+{% extends "conta/base_conta.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block cabecalho %}Área interna{% endblock %}
+{% block conteudo %}
+<form method="post" class="form-interno">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">Entrar</button>
+</form>
+{% endblock %}

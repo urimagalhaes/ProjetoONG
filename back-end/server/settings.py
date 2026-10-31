@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'voluntarios',
     'assistidas',
     'rest_framework',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'axes',
 ]
 
 MIDDLEWARE = [
@@ -50,8 +53,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'core.middleware.ExigenciasDeContaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 ROOT_URLCONF = 'server.urls'
@@ -100,6 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 10},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -137,6 +144,30 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Login da área interna
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+LOGIN_URL = 'entrar'
+LOGIN_REDIRECT_URL = 'assistidas_lista'
+LOGOUT_REDIRECT_URL = 'entrar'
+
+# 2FA por aplicativo. Desligado por padrão só em desenvolvimento.
+EXIGIR_2FA = config('EXIGIR_2FA', default=not DEBUG, cast=bool)
+OTP_TOTP_ISSUER = 'Superação VD'
+
+# Bloqueio de tentativas por login: atrás do proxy, o IP nem sempre é confiável.
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 0.5  # horas
+AXES_LOCKOUT_PARAMETERS = ['username']
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = 'conta/bloqueado.html'
+AXES_DISABLE_ACCESS_LOG = True
+# W006 pede IP no bloqueio; aqui é por login, justamente porque o IP não é confiável.
+SILENCED_SYSTEM_CHECKS = ['axes.W006']
 
 
 # Sessão: curta e sem sobreviver ao fechamento do navegador, inclusive em

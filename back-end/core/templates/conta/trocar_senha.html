@@ -1,0 +1,11 @@
+{% extends "conta/base_conta.html" %}
+{% block titulo %}Trocar senha{% endblock %}
+{% block cabecalho %}Crie sua senha{% endblock %}
+{% block conteudo %}
+<p class="meta">Escolha uma senha só sua, com pelo menos 10 caracteres.</p>
+<form method="post" class="form-interno">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Salvar senha</button>
+</form>
+{% endblock %}

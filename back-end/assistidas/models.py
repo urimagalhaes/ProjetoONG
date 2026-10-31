@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -59,6 +60,47 @@ class PendenciaCadastro(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} em {self.criado_em:%d/%m/%Y %H:%M}"
+
+
+class VinculoAtendimento(models.Model):
+    """
+    Liga um voluntário a uma assistida. É a única fonte da regra de acesso ao
+    prontuário. Encerrar preenche `fim` e preserva o histórico.
+    """
+    id_vinculo = models.AutoField(primary_key=True)
+    assistida = models.ForeignKey(Assistida, on_delete=models.CASCADE, related_name='vinculos')
+    voluntario = models.ForeignKey(
+        'voluntarios.Voluntario',
+        on_delete=models.PROTECT,
+        related_name='vinculos',
+        verbose_name='Voluntário',
+    )
+    designado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+        verbose_name='Designado por',
+    )
+    inicio = models.DateTimeField('Início', auto_now_add=True)
+    fim = models.DateTimeField('Fim', blank=True, null=True)
+
+    class Meta:
+        db_table = 'VinculosAtendimento'
+        verbose_name = 'Vínculo de atendimento'
+        verbose_name_plural = 'Vínculos de atendimento'
+        ordering = ['-inicio']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['assistida', 'voluntario'],
+                condition=models.Q(fim__isnull=True),
+                name='um_vinculo_ativo_por_par',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.voluntario} atende {self.assistida}"
 
 
 class RegistroProntuario(models.Model):

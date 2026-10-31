@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 class Voluntario(models.Model):
@@ -8,6 +9,15 @@ class Voluntario(models.Model):
     ]
     
     id_voluntario = models.AutoField(primary_key=True)
+    # Login da pessoa na área interna. Quem não atende não precisa ter.
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='voluntario',
+        verbose_name='Usuário de acesso',
+    )
     email_voluntario = models.EmailField(max_length=100)
     nomecompleto_voluntario = models.CharField(max_length=150)
     datanasc_voluntario = models.DateField()

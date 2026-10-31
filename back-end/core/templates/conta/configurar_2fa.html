@@ -1,0 +1,13 @@
+{% extends "conta/base_conta.html" %}
+{% block titulo %}Configurar 2FA{% endblock %}
+{% block cabecalho %}Proteja sua conta{% endblock %}
+{% block conteudo %}
+<p class="meta">Abra um aplicativo autenticador no celular, como Google Authenticator ou Aegis, e leia este código.</p>
+<img class="qr" src="{{ qr }}" alt="Código QR para o aplicativo autenticador">
+<p class="meta">Sem câmera? Digite esta chave no aplicativo: <code>{{ chave }}</code></p>
+<form method="post" class="form-interno">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Confirmar</button>
+</form>
+{% endblock %}

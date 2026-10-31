@@ -1,0 +1,18 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block titulo %}Área interna{% endblock %} - Superação da Violência Doméstica</title>
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
+    <link rel="stylesheet" href="{% static 'front/interno.css' %}">
+</head>
+<body class="tela-conta">
+    <main class="cartao-conta">
+        <a href="{% url 'index' %}"><img src="{% static 'front/logotipo-cor.svg' %}" alt="Superação da Violência Doméstica" width="240" height="60"></a>
+        <h1>{% block cabecalho %}{% endblock %}</h1>
+        {% block conteudo %}{% endblock %}
+    </main>
+</body>
+</html>

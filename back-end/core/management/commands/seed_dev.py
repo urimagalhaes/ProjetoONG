@@ -6,15 +6,20 @@ Popula o banco LOCAL com dados fictícios para testar o sistema.
 - Só roda com DEBUG=True (nunca em produção).
 - Pode ser executado várias vezes: não duplica registros.
 - Cria o usuário de teste  admin / admin  caso não exista nenhum superusuário.
+- Cria logins de teste, com senha igual ao nome:
+  coordenadora, helena (advogada), paula (psicóloga) e carlos (estagiário).
 """
 from datetime import date, time
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
 
-from assistidas.models import Assistida, RegistroProntuario
+from assistidas.models import Assistida, RegistroProntuario, VinculoAtendimento
+from assistidas.permissoes import GRUPO_ATENDIMENTO, GRUPO_COORDENACAO
 from atendimentos.models import Atendimento
+from core.models import ContaInterna
 from voluntarios.models import (
     Advogado, Bacharel, DisponibilidadeEstagiario, Estagiario, Voluntario,
 )
@@ -88,6 +93,28 @@ class Command(BaseCommand):
         if not a2.registros_prontuario.exists():
             RegistroProntuario.objects.create(
                 id_assistida=a2, id_autor=v_est, texto='Triagem realizada. Encaminhada para advogada voluntária.')
+
+        def login(nome, voluntario=None, grupo=GRUPO_ATENDIMENTO, staff=False):
+            usuario, criado = User.objects.get_or_create(username=nome, defaults={'is_staff': staff})
+            if criado:
+                usuario.set_password(nome)
+                usuario.save()
+            usuario.groups.add(Group.objects.get(name=grupo))
+            if voluntario is not None:
+                voluntario.usuario = usuario
+                voluntario.save()
+            return usuario
+
+        coordenadora = login('coordenadora', grupo=GRUPO_COORDENACAO, staff=True)
+        login('helena', v_adv)
+        login('paula', v_bac)
+        login('carlos', v_est)
+        for usuario in User.objects.all():
+            ContaInterna.objects.update_or_create(usuario=usuario, defaults={'trocar_senha': False})
+
+        for alvo, quem in ((a1, v_adv), (a1, v_bac), (a2, v_est)):
+            VinculoAtendimento.objects.get_or_create(
+                assistida=alvo, voluntario=quem, fim=None, defaults={'designado_por': coordenadora})
 
         Atendimento.objects.get_or_create(
             data_atendimento=date(2026, 11, 3), hora_atendimento=time(15, 0),

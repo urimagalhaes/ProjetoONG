@@ -1,12 +1,14 @@
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
 
 from core.cadastro import dados_do_aceite, receber_cadastro, texto
 from services import apenas_digitos, cpf_valido, formatar_cpf
 from .models import Assistida
+from .permissoes import assistidas_vinculadas, tem_vinculo_ativo
 
 
 # ---------------------------------------------------------------- API pública
@@ -56,13 +58,20 @@ def adicionar(request):
     return receber_cadastro(request, 'assistida', _salvar_assistida, CAMPOS_PUBLICOS)
 
 
-# ------------------------------------------- Páginas internas (só equipe/staff)
+# ----------------------------------------- Páginas internas (só com vínculo)
+def _assistida_com_vinculo(request, id_assistida):
+    """404 também sem permissão, para não confirmar que a assistida existe."""
+    if not tem_vinculo_ativo(request.user, id_assistida):
+        raise Http404
+    return get_object_or_404(Assistida, pk=id_assistida)
+
+
 @never_cache
-@staff_member_required
+@login_required
 def lista(request):
     busca = request.GET.get('q', '').strip()
-    assistidas = Assistida.objects.annotate(
-        total_registros=Count('registros_prontuario')
+    assistidas = assistidas_vinculadas(request.user).annotate(
+        total_registros=Count('registros_prontuario', distinct=True)
     )
     if busca:
         assistidas = assistidas.filter(
@@ -77,9 +86,9 @@ def lista(request):
 
 
 @never_cache
-@staff_member_required
+@login_required
 def prontuario(request, id_assistida):
-    assistida = get_object_or_404(Assistida, pk=id_assistida)
+    assistida = _assistida_com_vinculo(request, id_assistida)
     registros = assistida.registros_prontuario.select_related(
         'id_autor',
         'id_autor__estagiario',

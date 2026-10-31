@@ -1,0 +1,11 @@
+{% extends "conta/base_conta.html" %}
+{% block titulo %}Código de acesso{% endblock %}
+{% block cabecalho %}Código de acesso{% endblock %}
+{% block conteudo %}
+<p class="meta">Digite o código do seu aplicativo autenticador.</p>
+<form method="post" class="form-interno">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Confirmar</button>
+</form>
+{% endblock %}

@@ -3,13 +3,18 @@ from datetime import date
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.db import IntegrityError, transaction
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from core.cadastro import VERSAO_AVISO
+from core.models import ContaInterna
 from core.utils_teste import STORAGES_TESTE
 from voluntarios.models import Advogado, Voluntario
-from .models import Assistida, PendenciaCadastro, RegistroProntuario
+from .models import Assistida, PendenciaCadastro, RegistroProntuario, VinculoAtendimento
+from .permissoes import GRUPO_ATENDIMENTO, GRUPO_COORDENACAO
 
 PAYLOAD = {
     'cpf': '529.982.247-25', 'nome': 'Maria Teste', 'cep': '24020-000', 'idade': 30,
@@ -151,43 +156,49 @@ class PaginasPublicasTests(TestCase):
         self.assertContains(self.client.get('/'), '/cadastro-assistida/')
 
 
+def criar_login(nome, voluntario=None, **kw):
+    usuario = get_user_model().objects.create_user(nome, password='x', **kw)
+    ContaInterna.objects.create(usuario=usuario, trocar_senha=False)
+    if voluntario is not None:
+        voluntario.usuario = usuario
+        voluntario.save()
+    return usuario
+
+
 @override_settings(STORAGES=STORAGES_TESTE)
 class AreaInternaTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        U = get_user_model()
-        cls.staff = U.objects.create_user('equipe', password='x', is_staff=True)
-        cls.comum = U.objects.create_user('comum', password='x')
         cls.maria = criar_assistida()
         cls.joana = criar_assistida(cpf_assistida='222.222.222-22', nome_assistida='Joana Souza')
         cls.autora = criar_advogada()
+        cls.atendente = criar_login('atendente', cls.autora)
+        cls.vinculo = VinculoAtendimento.objects.create(assistida=cls.maria, voluntario=cls.autora)
+
+    def url(self, assistida):
+        return reverse('assistida_prontuario', args=[assistida.pk])
 
     def test_anonimo_vai_para_login(self):
-        for url in (reverse('assistidas_lista'), reverse('assistida_prontuario', args=[self.maria.pk])):
+        for url in (reverse('assistidas_lista'), self.url(self.maria)):
             r = self.client.get(url)
             self.assertEqual(r.status_code, 302)
-            self.assertIn('/admin/login/', r['Location'])
+            self.assertIn('/entrar/', r['Location'])
 
-    def test_usuario_sem_staff_nao_acessa(self):
-        self.client.force_login(self.comum)
-        r = self.client.get(reverse('assistidas_lista'))
-        self.assertEqual(r.status_code, 302)
-
-    def test_lista_e_busca(self):
-        self.client.force_login(self.staff)
+    def test_lista_mostra_so_as_vinculadas(self):
+        self.client.force_login(self.atendente)
         r = self.client.get(reverse('assistidas_lista'))
         self.assertContains(r, 'Maria da Silva')
-        self.assertContains(r, 'Joana Souza')
+        self.assertNotContains(r, 'Joana Souza')
+
+    def test_busca_fica_dentro_das_vinculadas(self):
+        self.client.force_login(self.atendente)
         r = self.client.get(reverse('assistidas_lista'), {'q': 'joana'})
-        self.assertContains(r, 'Joana Souza')
-        self.assertNotContains(r, 'Maria da Silva')
-        r = self.client.get(reverse('assistidas_lista'), {'q': '111.111'})
-        self.assertContains(r, 'Maria da Silva')
+        self.assertNotContains(r, 'Joana Souza')
 
     def test_prontuario_mostra_autor_tipo_e_texto(self):
         RegistroProntuario.objects.create(id_assistida=self.maria, id_autor=self.autora, texto='Linha 1\nLinha 2')
-        self.client.force_login(self.staff)
-        r = self.client.get(reverse('assistida_prontuario', args=[self.maria.pk]))
+        self.client.force_login(self.atendente)
+        r = self.client.get(self.url(self.maria))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Prontuário de Maria da Silva')
         self.assertContains(r, 'Helena Advogada')
@@ -195,37 +206,25 @@ class AreaInternaTests(TestCase):
         self.assertContains(r, 'Linha 1<br>Linha 2')
 
     def test_prontuario_mostra_contato_e_alerta_de_recado(self):
-        sem_recado = criar_assistida(
-            cpf_assistida='333.333.333-33', telefone_assistida='21999990000', melhor_horario='de manhã')
-        self.client.force_login(self.staff)
-        r = self.client.get(reverse('assistida_prontuario', args=[sem_recado.pk]))
+        Assistida.objects.filter(pk=self.maria.pk).update(
+            telefone_assistida='21999990000', melhor_horario='de manhã')
+        self.client.force_login(self.atendente)
+        r = self.client.get(self.url(self.maria))
         self.assertContains(r, '21999990000')
         self.assertContains(r, 'de manhã')
         self.assertContains(r, 'Não deixar recado')
 
-    def test_prontuario_so_mostra_registros_da_propria_assistida(self):
-        RegistroProntuario.objects.create(id_assistida=self.joana, id_autor=self.autora, texto='SEGREDO DA JOANA')
-        self.client.force_login(self.staff)
-        r = self.client.get(reverse('assistida_prontuario', args=[self.maria.pk]))
-        self.assertNotContains(r, 'SEGREDO DA JOANA')
-        self.assertContains(r, 'Ainda não há registros')
-
     def test_prontuario_escapa_html(self):
         RegistroProntuario.objects.create(
             id_assistida=self.maria, id_autor=self.autora, texto='<script>alert(1)</script>')
-        self.client.force_login(self.staff)
-        r = self.client.get(reverse('assistida_prontuario', args=[self.maria.pk]))
+        self.client.force_login(self.atendente)
+        r = self.client.get(self.url(self.maria))
         self.assertNotContains(r, '<script>alert(1)</script>')
         self.assertContains(r, '&lt;script&gt;')
 
-    def test_prontuario_inexistente_da_404(self):
-        self.client.force_login(self.staff)
-        self.assertEqual(self.client.get(reverse('assistida_prontuario', args=[9999])).status_code, 404)
-
     def test_paginas_nao_ficam_em_cache(self):
-        self.client.force_login(self.staff)
-        r = self.client.get(reverse('assistida_prontuario', args=[self.maria.pk]))
-        self.assertIn('no-store', r['Cache-Control'])
+        self.client.force_login(self.atendente)
+        self.assertIn('no-store', self.client.get(self.url(self.maria))['Cache-Control'])
 
     def test_voluntario_com_registro_nao_pode_ser_apagado(self):
         from django.db.models import ProtectedError
@@ -233,16 +232,91 @@ class AreaInternaTests(TestCase):
         with self.assertRaises(ProtectedError):
             self.autora.delete()
 
-    def test_admin_das_novas_telas_abre(self):
-        U = get_user_model()
-        U.objects.create_superuser('root', 'r@example.com', 'x')
-        self.client.login(username='root', password='x')
-        RegistroProntuario.objects.create(id_assistida=self.maria, id_autor=self.autora, texto='x')
+
+@override_settings(STORAGES=STORAGES_TESTE)
+class AdminTests(TestCase):
+    def test_telas_abrem(self):
+        root = get_user_model().objects.create_superuser('root', 'r@example.com', 'x')
+        ContaInterna.objects.create(usuario=root, trocar_senha=False)
+        self.client.force_login(root)
+        maria = criar_assistida()
+        autora = criar_advogada()
+        RegistroProntuario.objects.create(id_assistida=maria, id_autor=autora, texto='x')
         PendenciaCadastro.objects.create(tipo='assistida', dados={'nome': 'Teste'})
         for nome in ('assistidas_assistida_changelist', 'assistidas_registroprontuario_changelist',
                      'assistidas_pendenciacadastro_changelist',
                      'voluntarios_voluntario_changelist', 'atendimentos_atendimento_changelist'):
             self.assertEqual(self.client.get(reverse(f'admin:{nome}')).status_code, 200, nome)
         self.assertEqual(
-            self.client.get(reverse('admin:assistidas_assistida_change', args=[self.maria.pk])).status_code, 200)
-        self.assertEqual(self.client.get(reverse('admin:assistidas_registroprontuario_add')).status_code, 200)
+            self.client.get(reverse('admin:assistidas_assistida_change', args=[maria.pk])).status_code, 200)
+
+
+@override_settings(STORAGES=STORAGES_TESTE)
+class MatrizDeAcessoAoProntuarioTests(TestCase):
+    """Só o vínculo ativo abre o prontuário; sem ele a resposta é sempre 404."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.maria = criar_assistida()
+        cls.autora = criar_advogada()
+        cls.url = reverse('assistida_prontuario', args=[cls.maria.pk])
+        cls.inexistente = reverse('assistida_prontuario', args=[9999])
+        RegistroProntuario.objects.create(id_assistida=cls.maria, id_autor=cls.autora, texto='SIGILOSO')
+
+    def status(self, usuario, url=None):
+        self.client.force_login(usuario)
+        return self.client.get(url or self.url).status_code
+
+    def test_com_vinculo_ativo_abre(self):
+        usuario = criar_login('a', self.autora)
+        VinculoAtendimento.objects.create(assistida=self.maria, voluntario=self.autora)
+        self.assertEqual(self.status(usuario), 200)
+
+    def test_sem_vinculo_da_404(self):
+        self.assertEqual(self.status(criar_login('a', self.autora)), 404)
+
+    def test_login_sem_voluntario_da_404(self):
+        self.assertEqual(self.status(criar_login('a')), 404)
+
+    def test_vinculo_encerrado_da_404(self):
+        usuario = criar_login('a', self.autora)
+        VinculoAtendimento.objects.create(
+            assistida=self.maria, voluntario=self.autora, fim=timezone.now())
+        self.assertEqual(self.status(usuario), 404)
+
+    def test_coordenacao_sem_vinculo_da_404(self):
+        usuario = criar_login('c', is_staff=True)
+        usuario.groups.add(Group.objects.get(name=GRUPO_COORDENACAO))
+        self.assertEqual(self.status(usuario), 404)
+
+    def test_superusuario_sem_vinculo_da_404(self):
+        self.assertEqual(self.status(criar_login('s', is_superuser=True, is_staff=True)), 404)
+
+    def test_coordenacao_com_vinculo_abre(self):
+        usuario = criar_login('c', self.autora, is_staff=True)
+        usuario.groups.add(Group.objects.get(name=GRUPO_COORDENACAO))
+        VinculoAtendimento.objects.create(assistida=self.maria, voluntario=self.autora)
+        self.assertEqual(self.status(usuario), 200)
+
+    def test_negado_e_inexistente_respondem_igual(self):
+        usuario = criar_login('a', self.autora)
+        self.assertEqual(self.status(usuario), self.status(usuario, self.inexistente))
+
+
+class VinculoTests(TestCase):
+    def test_um_vinculo_ativo_por_par_e_historico_preservado(self):
+        maria, autora = criar_assistida(), criar_advogada()
+        VinculoAtendimento.objects.create(assistida=maria, voluntario=autora, fim=timezone.now())
+        VinculoAtendimento.objects.create(assistida=maria, voluntario=autora)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            VinculoAtendimento.objects.create(assistida=maria, voluntario=autora)
+
+
+class GruposTests(TestCase):
+    def test_grupos_existem_e_coordenacao_nao_le_prontuario(self):
+        self.assertTrue(Group.objects.filter(name=GRUPO_ATENDIMENTO).exists())
+        coordenacao = Group.objects.get(name=GRUPO_COORDENACAO)
+        codigos = set(coordenacao.permissions.values_list('codename', flat=True))
+        self.assertIn('view_assistida', codigos)
+        self.assertNotIn('view_registroprontuario', codigos)
+        self.assertNotIn('change_registroprontuario', codigos)
