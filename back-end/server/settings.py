@@ -164,6 +164,10 @@ elif not CHAVES_CIFRAGEM or not CHAVE_HASH_CPF:
     raise ImproperlyConfigured('Defina CHAVES_CIFRAGEM e CHAVE_HASH_CPF.')
 
 
+# Enviado pela Vercel no cron diário. Vazio desliga a rota.
+CRON_SECRET = config('CRON_SECRET', default='')
+
+
 # Login da área interna
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',

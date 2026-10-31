@@ -5,3 +5,6 @@ db.sqlite3
 venv/
 .DS_Storage
 git
+.vercel/
+.env.*
+!.env.example

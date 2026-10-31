@@ -3,6 +3,7 @@ from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
+    path('manutencao/banco/', views.manter_banco, name='manter_banco'),
     path('', views.index, name='index'),
     path('cadastro-assistida/', views.cadastro_assistida, name='cadastro_assistida'),
     # URL antiga mantida para não quebrar links já divulgados

@@ -36,6 +36,7 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         ambiente = {
             **os.environ, 'DJANGO_SETTINGS_MODULE': 'server.settings', 'SECRET_KEY': 'x' * 60,
             'DEBUG': 'False', 'DATABASE_URL': 'postgres://u:s@exemplo.invalid:6543/banco',
+            'DB_SSL': 'True',
             'CHAVES_CIFRAGEM': Fernet.generate_key().decode(), 'CHAVE_HASH_CPF': 'y' * 40, **env,
         }
         return subprocess.run([sys.executable, '-c', codigo], capture_output=True, text=True,
@@ -130,3 +131,28 @@ class PaginasTests(TestCase):
     def test_fontes_estao_no_projeto(self):
         pasta = PASTA_CORE / 'static' / 'front' / 'fonts'
         self.assertTrue(list(pasta.glob('*.woff2')))
+
+
+class ManterBancoTests(TestCase):
+    url = '/manutencao/banco/'
+
+    @override_settings(CRON_SECRET='segredo-de-teste')
+    def test_com_o_segredo_consulta_o_banco(self):
+        r = self.client.get(self.url, headers={'Authorization': 'Bearer segredo-de-teste'})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {'ok': True})
+
+    @override_settings(CRON_SECRET='segredo-de-teste')
+    def test_segredo_errado_ou_ausente_da_404(self):
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        r = self.client.get(self.url, headers={'Authorization': 'Bearer errado'})
+        self.assertEqual(r.status_code, 404)
+
+    @override_settings(CRON_SECRET='')
+    def test_sem_segredo_configurado_a_rota_fica_desligada(self):
+        self.assertEqual(self.client.get(self.url, headers={'Authorization': 'Bearer '}).status_code, 404)
+
+    @override_settings(CRON_SECRET='segredo-de-teste')
+    def test_nao_aceita_post(self):
+        r = self.client.post(self.url, headers={'Authorization': 'Bearer segredo-de-teste'})
+        self.assertEqual(r.status_code, 405)
