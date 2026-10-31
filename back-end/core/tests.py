@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -25,7 +26,7 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         'SESSION_COOKIE_AGE', 'SESSION_EXPIRE_AT_BROWSER_CLOSE', 'CSRF_TRUSTED_ORIGINS',
     ]
 
-    def carregar(self, **env):
+    def executar(self, **env):
         codigo = (
             'import json, django; django.setup(); from django.conf import settings as s; '
             f'print(json.dumps({{n: getattr(s, n) for n in {self.NOMES!r}}} | '
@@ -34,10 +35,15 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         )
         ambiente = {
             **os.environ, 'DJANGO_SETTINGS_MODULE': 'server.settings', 'SECRET_KEY': 'x' * 60,
-            'DEBUG': 'False', 'DATABASE_URL': 'postgres://u:s@exemplo.invalid:6543/banco', **env,
+            'DEBUG': 'False', 'DATABASE_URL': 'postgres://u:s@exemplo.invalid:6543/banco',
+            'CHAVES_CIFRAGEM': Fernet.generate_key().decode(), 'CHAVE_HASH_CPF': 'y' * 40, **env,
         }
-        saida = subprocess.run([sys.executable, '-c', codigo], capture_output=True, text=True,
-                               env=ambiente, cwd=settings.BASE_DIR, check=True)
+        return subprocess.run([sys.executable, '-c', codigo], capture_output=True, text=True,
+                              env=ambiente, cwd=settings.BASE_DIR)
+
+    def carregar(self, **env):
+        saida = self.executar(**env)
+        self.assertEqual(saida.returncode, 0, saida.stderr)
         return json.loads(saida.stdout)
 
     def test_producao_exige_https_e_cookies_seguros(self):
@@ -49,6 +55,10 @@ class ConfiguracaoProducaoTests(SimpleTestCase):
         self.assertEqual(c['SESSION_COOKIE_AGE'], 3600)
         self.assertTrue(c['SESSION_EXPIRE_AT_BROWSER_CLOSE'])
         self.assertEqual(c['CSRF_TRUSTED_ORIGINS'], ['https://a.example', 'https://b.example'])
+
+    def test_producao_nao_sobe_sem_as_chaves(self):
+        self.assertNotEqual(self.executar(CHAVES_CIFRAGEM='').returncode, 0)
+        self.assertNotEqual(self.executar(CHAVE_HASH_CPF='').returncode, 0)
 
     def test_banco_postgres_usa_ssl_e_serve_para_o_pooler(self):
         db = self.carregar()['db']

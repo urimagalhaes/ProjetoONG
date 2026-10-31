@@ -19,14 +19,13 @@ class AssistidaAdmin(admin.ModelAdmin):
     list_display = [
         'id_assistida',
         'nome_assistida',
-        'cpf_assistida',
         'idade_assistida',
         'cidade_assistida',
         'estado_assistida',
         'link_prontuario',
     ]
     list_filter = ['estado_assistida', 'cidade_assistida']
-    search_fields = ['nome_assistida', 'cpf_assistida', 'apelido_assistida']
+    search_fields = ['nome_assistida', 'apelido_assistida']
     readonly_fields = ['id_assistida']
     list_per_page = 25
     inlines = [RegistroProntuarioInline]
@@ -89,7 +88,6 @@ class RegistroProntuarioAdmin(admin.ModelAdmin):
     search_fields = [
         'id_assistida__nome_assistida',
         'id_autor__nomecompleto_voluntario',
-        'texto',
     ]
     autocomplete_fields = ['id_assistida', 'id_autor']
     readonly_fields = ['criado_em', 'atualizado_em']

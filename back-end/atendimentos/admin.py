@@ -19,7 +19,6 @@ class AtendimentoAdmin(admin.ModelAdmin):
     
     search_fields = (
         'id_assistida__nome_assistida',
-        'id_assistida__cpf_assistida',
         'id_estagiario__id_voluntario__nomecompleto_voluntario'
     )
     

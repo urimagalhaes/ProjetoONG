@@ -6,7 +6,9 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
 
 from core.cadastro import dados_do_aceite, receber_cadastro, texto
+from core.cripto import hash_cpf
 from services import apenas_digitos, cpf_valido, formatar_cpf
+from .auditoria import registrar
 from .models import Assistida
 from .permissoes import assistidas_vinculadas, tem_vinculo_ativo
 
@@ -62,6 +64,7 @@ def adicionar(request):
 def _assistida_com_vinculo(request, id_assistida):
     """404 também sem permissão, para não confirmar que a assistida existe."""
     if not tem_vinculo_ativo(request.user, id_assistida):
+        registrar(request, 'negacao', id_assistida=id_assistida)
         raise Http404
     return get_object_or_404(Assistida, pk=id_assistida)
 
@@ -74,11 +77,10 @@ def lista(request):
         total_registros=Count('registros_prontuario', distinct=True)
     )
     if busca:
-        assistidas = assistidas.filter(
-            Q(nome_assistida__icontains=busca)
-            | Q(cpf_assistida__icontains=busca)
-            | Q(apelido_assistida__icontains=busca)
-        )
+        filtro = Q(nome_assistida__icontains=busca) | Q(apelido_assistida__icontains=busca)
+        if len(apenas_digitos(busca)) == 11:
+            filtro |= Q(cpf_hash=hash_cpf(busca))
+        assistidas = assistidas.filter(filtro)
     return render(request, 'assistidas/lista.html', {
         'assistidas': assistidas,
         'busca': busca,
@@ -89,6 +91,7 @@ def lista(request):
 @login_required
 def prontuario(request, id_assistida):
     assistida = _assistida_com_vinculo(request, id_assistida)
+    registrar(request, 'leitura', id_assistida=assistida.pk)
     registros = assistida.registros_prontuario.select_related(
         'id_autor',
         'id_autor__estagiario',

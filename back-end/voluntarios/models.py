@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import models
 
+from core.campos import CampoCifrado
+from core.cripto import hash_cpf
+
 class Voluntario(models.Model):
     SEXO_CHOICES = [
         ('M', 'Masculino'),
@@ -24,11 +27,12 @@ class Voluntario(models.Model):
     sexo_voluntario = models.CharField(max_length=1, choices=SEXO_CHOICES)
     cidade_voluntario = models.CharField(max_length=30)
     estado_voluntario = models.CharField(max_length=2)
-    endereco_voluntario = models.CharField(max_length=50)
-    telefone_voluntario = models.CharField(max_length=9)
+    endereco_voluntario = CampoCifrado(max_length=50)
+    telefone_voluntario = CampoCifrado(max_length=9)
     instagram_voluntario = models.CharField(max_length=30, blank=True, default='')
-    cpf_voluntario = models.CharField(max_length=14, unique=True)  
-    rg_voluntario = models.CharField(max_length=9)
+    cpf_voluntario = CampoCifrado(max_length=14)
+    cpf_hash_voluntario = models.CharField(max_length=64, unique=True, editable=False, blank=True)
+    rg_voluntario = CampoCifrado(max_length=9)
     # Marcados pela equipe quando recebe o documento. O site não recebe arquivos.
     cpfupload_voluntario = models.BooleanField(default=False)
     fotoupload_voluntario = models.BooleanField(default=False)
@@ -41,6 +45,11 @@ class Voluntario(models.Model):
     
     def __str__(self):
         return self.nomecompleto_voluntario
+
+    def save(self, *args, **kwargs):
+        if self.cpf_voluntario:
+            self.cpf_hash_voluntario = hash_cpf(self.cpf_voluntario)
+        super().save(*args, **kwargs)
 
     @property
     def tipo(self):

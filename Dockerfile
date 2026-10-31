@@ -20,6 +20,7 @@ COPY back-end/ .
 
 # Coleta os arquivos estáticos (usa valores dummy apenas para o build)
 RUN SECRET_KEY=dummy-key-for-build \
+    DEBUG=True \
     DATABASE_URL=sqlite:////tmp/build.db \
     python manage.py collectstatic --noinput
 

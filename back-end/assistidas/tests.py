@@ -54,7 +54,8 @@ class ApiCadastroAssistidaTests(TestCase):
         r = self.post(PAYLOAD)
         self.assertEqual(r.status_code, 201)
         self.assertNotIn('id', r.json())
-        a = Assistida.objects.get(cpf_assistida='529.982.247-25')
+        a = Assistida.objects.get()
+        self.assertEqual(a.cpf_assistida, '529.982.247-25')
         self.assertEqual(a.nome_assistida, 'Maria Teste')
         self.assertEqual(a.num_endereco_assistida, 's/n')
         self.assertEqual(a.telefone_assistida, '21999990000')
@@ -194,6 +195,13 @@ class AreaInternaTests(TestCase):
         self.client.force_login(self.atendente)
         r = self.client.get(reverse('assistidas_lista'), {'q': 'joana'})
         self.assertNotContains(r, 'Joana Souza')
+
+    def test_busca_por_cpf_e_exata(self):
+        self.client.force_login(self.atendente)
+        r = self.client.get(reverse('assistidas_lista'), {'q': '111.111.111-11'})
+        self.assertContains(r, 'Maria da Silva')
+        r = self.client.get(reverse('assistidas_lista'), {'q': '111.111'})
+        self.assertNotContains(r, 'Maria da Silva')
 
     def test_prontuario_mostra_autor_tipo_e_texto(self):
         RegistroProntuario.objects.create(id_assistida=self.maria, id_autor=self.autora, texto='Linha 1\nLinha 2')

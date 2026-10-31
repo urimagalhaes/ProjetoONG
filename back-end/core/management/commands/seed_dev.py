@@ -19,6 +19,7 @@ from django.core.management.base import BaseCommand, CommandError
 from assistidas.models import Assistida, RegistroProntuario, VinculoAtendimento
 from assistidas.permissoes import GRUPO_ATENDIMENTO, GRUPO_COORDENACAO
 from atendimentos.models import Atendimento
+from core.cripto import hash_cpf
 from core.models import ContaInterna
 from voluntarios.models import (
     Advogado, Bacharel, DisponibilidadeEstagiario, Estagiario, Voluntario,
@@ -52,7 +53,8 @@ class Command(BaseCommand):
                 termoupload_voluntario=True,
             )
             base.update(extra)
-            obj, _ = Voluntario.objects.get_or_create(cpf_voluntario=cpf, defaults=base)
+            base['cpf_voluntario'] = cpf
+            obj, _ = Voluntario.objects.get_or_create(cpf_hash_voluntario=hash_cpf(cpf), defaults=base)
             return obj
 
         v_adv = voluntario('000.000.000-01', 'Helena Advogada (teste)')
@@ -72,8 +74,8 @@ class Command(BaseCommand):
                     fimdisponibilidade_estagiario=time(18, 0))
 
         def assistida(cpf, nome, apelido, idade):
-            obj, _ = Assistida.objects.get_or_create(cpf_assistida=cpf, defaults=dict(
-                nome_assistida=nome, apelido_assistida=apelido, idade_assistida=idade,
+            obj, _ = Assistida.objects.get_or_create(cpf_hash=hash_cpf(cpf), defaults=dict(
+                cpf_assistida=cpf, nome_assistida=nome, apelido_assistida=apelido, idade_assistida=idade,
                 cep_assistida='24020000', rua_assistida='Rua Exemplo', num_endereco_assistida='42',
                 telefone_assistida='21999990000', melhor_horario='de manhã',
                 cidade_assistida='Niterói', estado_assistida='RJ'))

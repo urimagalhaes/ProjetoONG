@@ -1,8 +1,10 @@
+import base64
 import os
 from pathlib import Path
 
 import dj_database_url
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'...
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,6 +146,22 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Criptografia dos dados pessoais (ver core/cripto.py). Sem as chaves, produção
+# não sobe. As chaves abaixo são públicas e servem só para desenvolvimento.
+CHAVES_CIFRAGEM = config(
+    'CHAVES_CIFRAGEM',
+    default='',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
+CHAVE_HASH_CPF = config('CHAVE_HASH_CPF', default='')
+if DEBUG:
+    CHAVES_CIFRAGEM = CHAVES_CIFRAGEM or [
+        base64.urlsafe_b64encode(b'desenvolvimento-nao-usar-em-prod').decode()]
+    CHAVE_HASH_CPF = CHAVE_HASH_CPF or 'desenvolvimento-nao-usar-em-producao'
+elif not CHAVES_CIFRAGEM or not CHAVE_HASH_CPF:
+    raise ImproperlyConfigured('Defina CHAVES_CIFRAGEM e CHAVE_HASH_CPF.')
 
 
 # Login da área interna

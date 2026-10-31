@@ -13,7 +13,6 @@ class VoluntarioAdmin(admin.ModelAdmin):
         'nomecompleto_voluntario', 
         'email_voluntario', 
         'telefone_voluntario',
-        'cpf_voluntario',
         'cidade_voluntario',
         'tipo_voluntario',
     ]
@@ -22,9 +21,7 @@ class VoluntarioAdmin(admin.ModelAdmin):
     
     search_fields = [
         'nomecompleto_voluntario', 
-        'email_voluntario', 
-        'cpf_voluntario',
-        'telefone_voluntario'
+        'email_voluntario',
     ]
     
     list_per_page = 25
