@@ -4,22 +4,22 @@
 <h1>Assistidas</h1>
 
 <form class="busca" method="get">
-    <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome, apelido ou CPF">
+    <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome, apelido ou CPF completo">
     <button class="btn" type="submit">Buscar</button>
     {% if busca %}<a class="btn sec" href="{% url 'assistidas_lista' %}">Limpar</a>{% endif %}
 </form>
 
 <div class="card">
     {% if assistidas %}
+    <div class="tabela-rolagem">
     <table>
         <thead>
-            <tr><th>Nome</th><th>CPF</th><th>Idade</th><th>Cidade/UF</th><th>Registros</th><th></th></tr>
+            <tr><th>Nome</th><th>Idade</th><th>Cidade/UF</th><th>Registros</th><th></th></tr>
         </thead>
         <tbody>
         {% for a in assistidas %}
             <tr>
                 <td>{{ a.nome_assistida }}{% if a.apelido_assistida %} <span class="meta">({{ a.apelido_assistida }})</span>{% endif %}</td>
-                <td>{{ a.cpf_assistida }}</td>
                 <td>{{ a.idade_assistida }}</td>
                 <td>{{ a.cidade_assistida }}/{{ a.estado_assistida }}</td>
                 <td>{{ a.total_registros }}</td>
@@ -28,8 +28,9 @@
         {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
-        <p class="vazio">{% if busca %}Nenhuma assistida encontrada para “{{ busca }}”.{% else %}Nenhuma assistida cadastrada ainda.{% endif %}</p>
+        <p class="vazio">{% if busca %}Nenhuma assistida encontrada para “{{ busca }}”.{% else %}Nenhuma assistida vinculada a você.{% endif %}</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -9,6 +9,7 @@ PERMISSOES_COORDENACAO = {
         'assistida': ('add', 'change', 'view'),
         'vinculoatendimento': ('add', 'change', 'view'),
         'pendenciacadastro': ('change', 'view'),
+        'registroacesso': ('view',),
     },
     'voluntarios': {
         'voluntario': ('add', 'change', 'view'),

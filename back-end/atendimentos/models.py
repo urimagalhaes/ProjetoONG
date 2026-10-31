@@ -28,7 +28,7 @@ class Atendimento(models.Model):
         verbose_name = 'Atendimento'
         verbose_name_plural = 'Atendimentos'
         ordering = ['-data_atendimento']
-        unique_together = ('data_atendimento', 'hora_atendimento')
+        unique_together = ('id_estagiario', 'data_atendimento', 'hora_atendimento')
     
     def __str__(self):
         return f"Atendimento #{self.id_atendimento} - {self.id_assistida.nome_assistida}"

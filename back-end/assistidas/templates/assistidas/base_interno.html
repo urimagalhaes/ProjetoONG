@@ -1,45 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>{% block titulo %}Área interna{% endblock %} — Superação VD</title>
-    <style>
-        :root { --roxo:#5b2a86; --borda:#e3dcea; --fundo:#f7f4fa; --texto:#2a2433; --suave:#6b6377; }
-        * { box-sizing: border-box; }
-        body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-               background:var(--fundo); color:var(--texto); line-height:1.5; }
-        header { background:var(--roxo); color:#fff; padding:.9rem 1.5rem; display:flex;
-                 justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
-        header a { color:#fff; text-decoration:none; font-size:.9rem; margin-left:1rem; }
-        header strong { font-size:1.05rem; }
-        main { max-width:960px; margin:1.5rem auto; padding:0 1rem; }
-        .card { background:#fff; border:1px solid var(--borda); border-radius:10px;
-                padding:1.1rem 1.3rem; margin-bottom:1rem; }
-        h1 { font-size:1.4rem; margin:.2rem 0 1rem; }
-        table { width:100%; border-collapse:collapse; }
-        th, td { text-align:left; padding:.6rem .5rem; border-bottom:1px solid var(--borda); font-size:.92rem; }
-        th { color:var(--suave); font-weight:600; font-size:.8rem; text-transform:uppercase; letter-spacing:.03em; }
-        a { color:var(--roxo); }
-        .btn { display:inline-block; background:var(--roxo); color:#fff; padding:.45rem .9rem;
-               border-radius:6px; text-decoration:none; font-size:.9rem; border:0; cursor:pointer; }
-        .btn.sec { background:#fff; color:var(--roxo); border:1px solid var(--roxo); }
-        .busca { display:flex; gap:.5rem; margin-bottom:1rem; }
-        .busca input { flex:1; padding:.5rem .7rem; border:1px solid var(--borda); border-radius:6px; font-size:.95rem; }
-        .meta { color:var(--suave); font-size:.88rem; }
-        .vazio { text-align:center; color:var(--suave); padding:2rem 1rem; }
-        .aviso { font-size:.8rem; color:var(--suave); margin-top:1.5rem; }
-        .registro-topo { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;
-                         border-bottom:1px solid var(--borda); padding-bottom:.5rem; margin-bottom:.7rem; }
-        .tag { background:var(--fundo); border:1px solid var(--borda); border-radius:999px;
-               padding:.05rem .55rem; font-size:.75rem; color:var(--suave); margin-left:.4rem; }
-        .acoes { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
-    </style>
+    <title>{% block titulo %}Área interna{% endblock %} - Superação da Violência Doméstica</title>
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
+    <link rel="stylesheet" href="{% static 'front/interno.css' %}">
 </head>
 <body>
-    <header>
-        <strong>Superação VD · Área interna</strong>
+    <header class="topo-interno">
+        <a href="{% url 'assistidas_lista' %}"><img src="{% static 'front/logotipo-cor.svg' %}" alt="Superação da Violência Doméstica" width="200" height="50"></a>
         <nav>
             <a href="{% url 'assistidas_lista' %}">Assistidas</a>
             {% if request.user.is_staff %}<a href="{% url 'admin:index' %}">Administração</a>{% endif %}
@@ -49,7 +20,7 @@
             </form>
         </nav>
     </header>
-    <main>
+    <main class="conteudo-interno">
         {% block conteudo %}{% endblock %}
         <p class="aviso">Informações confidenciais. Acesso restrito à equipe autorizada.</p>
     </main>

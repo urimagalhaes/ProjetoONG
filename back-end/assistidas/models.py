@@ -5,6 +5,8 @@ from django.db import models
 from core.campos import CampoCifrado, CampoJsonCifrado
 from core.cripto import hash_cpf
 
+PREFIXO_ANONIMIZADA = 'anonimizada-'
+
 
 class Assistida(models.Model):
     id_assistida = models.AutoField(primary_key=True)
@@ -34,6 +36,10 @@ class Assistida(models.Model):
 
     def __str__(self):
         return self.nome_assistida
+
+    @property
+    def anonimizada(self):
+        return self.cpf_hash.startswith(PREFIXO_ANONIMIZADA)
 
     def save(self, *args, **kwargs):
         if self.cpf_assistida:

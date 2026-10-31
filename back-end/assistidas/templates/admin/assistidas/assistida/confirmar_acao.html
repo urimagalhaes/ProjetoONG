@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h2>{{ assistida.nome_assistida }}</h2>
+<p>{{ aviso }}</p>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ acao }}">
+    <input type="hidden" name="_selected_action" value="{{ assistida.pk }}">
+    <input type="hidden" name="confirmado" value="1">
+    <input type="submit" value="{{ botao }}">
+    <a class="button cancel-link" href="{% url 'admin:assistidas_assistida_changelist' %}">Cancelar</a>
+</form>
+{% endblock %}

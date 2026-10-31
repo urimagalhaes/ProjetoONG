@@ -1,0 +1,13 @@
+{% extends "assistidas/base_interno.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<p><a href="{% url 'assistida_prontuario' assistida.pk %}">← Voltar para o prontuário</a></p>
+<h1>{{ titulo }}: {{ assistida.nome_assistida }}</h1>
+<div class="card">
+    <form method="post" class="form-interno">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Salvar</button>
+    </form>
+</div>
+{% endblock %}

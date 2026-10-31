@@ -14,11 +14,30 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from assistidas.models import PendenciaCadastro
+from core.cripto import hash_cpf
+from services import cpf_valido, formatar_cpf
 
 logger = logging.getLogger(__name__)
 
 # Trocar a cada mudança no texto de core/templates/front/privacidade.html.
 VERSAO_AVISO = '2026-10-31'
+
+
+def validar_cpf_do_formulario(form, campo, campo_hash):
+    """
+    Para os formulários internos. Só confere o CPF quando ele muda, para que um
+    cadastro antigo com CPF fora do padrão continue podendo ser editado.
+    """
+    cpf = form.cleaned_data[campo]
+    if campo not in form.changed_data:
+        return cpf
+    if not cpf_valido(cpf):
+        raise ValidationError('CPF inválido.')
+    cpf = formatar_cpf(cpf)
+    modelo = type(form.instance)
+    if modelo.objects.filter(**{campo_hash: hash_cpf(cpf)}).exclude(pk=form.instance.pk).exists():
+        raise ValidationError('Já existe um cadastro com este CPF.')
+    return cpf
 
 
 def _resposta_recebido():

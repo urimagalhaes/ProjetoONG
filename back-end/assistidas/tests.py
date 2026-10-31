@@ -251,8 +251,7 @@ class AdminTests(TestCase):
         autora = criar_advogada()
         RegistroProntuario.objects.create(id_assistida=maria, id_autor=autora, texto='x')
         PendenciaCadastro.objects.create(tipo='assistida', dados={'nome': 'Teste'})
-        for nome in ('assistidas_assistida_changelist', 'assistidas_registroprontuario_changelist',
-                     'assistidas_pendenciacadastro_changelist',
+        for nome in ('assistidas_assistida_changelist', 'assistidas_pendenciacadastro_changelist',
                      'voluntarios_voluntario_changelist', 'atendimentos_atendimento_changelist'):
             self.assertEqual(self.client.get(reverse(f'admin:{nome}')).status_code, 200, nome)
         self.assertEqual(

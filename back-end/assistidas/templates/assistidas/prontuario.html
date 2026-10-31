@@ -5,7 +5,7 @@
 <h1>Prontuário de {{ assistida.nome_assistida }}</h1>
 
 <div class="card">
-    <p class="meta" style="margin:0">
+    <p class="meta">
         {% if assistida.apelido_assistida %}Prefere ser chamada de <strong>{{ assistida.apelido_assistida }}</strong> · {% endif %}
         {{ assistida.idade_assistida }} anos · CPF {{ assistida.cpf_assistida }}<br>
         {{ assistida.rua_assistida }}, {{ assistida.num_endereco_assistida }}{% if assistida.complemento_endereco_assistida %} — {{ assistida.complemento_endereco_assistida }}{% endif %}
@@ -17,8 +17,8 @@
 </div>
 
 <div class="acoes">
-    <a class="btn" href="{% url 'admin:assistidas_registroprontuario_add' %}?id_assistida={{ assistida.pk }}">+ Novo registro</a>
-    <a class="btn sec" href="{% url 'admin:assistidas_assistida_change' assistida.pk %}">Editar cadastro</a>
+    <a class="btn" href="{% url 'registro_novo' assistida.pk %}">+ Novo registro</a>
+    {% if perms.assistidas.change_assistida %}<a class="btn sec" href="{% url 'admin:assistidas_assistida_change' assistida.pk %}">Editar cadastro</a>{% endif %}
 </div>
 
 {% for r in registros %}
@@ -31,6 +31,7 @@
         <span class="meta">{{ r.criado_em|date:"d/m/Y \à\s H:i" }}{% if r.atualizado_em|date:"U" != r.criado_em|date:"U" %} · editado em {{ r.atualizado_em|date:"d/m/Y H:i" }}{% endif %}</span>
     </div>
     <div>{{ r.texto|linebreaksbr }}</div>
+    {% if r.id_autor_id == id_voluntario %}<p class="meta"><a href="{% url 'registro_editar' assistida.pk r.pk %}">Editar</a></p>{% endif %}
 </div>
 {% empty %}
 <div class="card"><p class="vazio">Ainda não há registros no prontuário desta assistida.</p></div>

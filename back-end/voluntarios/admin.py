@@ -1,5 +1,19 @@
+from django import forms
 from django.contrib import admin
+
+from assistidas.auditoria import registrar
+from core.cadastro import validar_cpf_do_formulario
 from .models import Voluntario, Estagiario, Advogado, Bacharel, DisponibilidadeEstagiario
+
+
+class VoluntarioAdminForm(forms.ModelForm):
+    class Meta:
+        model = Voluntario
+        fields = '__all__'
+
+    def clean_cpf_voluntario(self):
+        return validar_cpf_do_formulario(self, 'cpf_voluntario', 'cpf_hash_voluntario')
+
 
 class DisponibilidadeInline(admin.TabularInline):
     model = DisponibilidadeEstagiario
@@ -8,6 +22,8 @@ class DisponibilidadeInline(admin.TabularInline):
 
 @admin.register(Voluntario)
 class VoluntarioAdmin(admin.ModelAdmin):
+    form = VoluntarioAdminForm
+
     list_display = [
         'id_voluntario', 
         'nomecompleto_voluntario', 
@@ -47,7 +63,20 @@ class VoluntarioAdmin(admin.ModelAdmin):
         ('Uploads', {
             'fields': ('cpfupload_voluntario', 'fotoupload_voluntario', 'termoupload_voluntario')
         }),
+        ('Acesso ao sistema', {
+            'fields': ('usuario',)
+        }),
     )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'usuario' and not request.user.is_superuser:
+            kwargs['queryset'] = db_field.remote_field.model.objects.filter(is_superuser=False)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if 'usuario' in form.changed_data:
+            registrar(request, 'usuario_vinculado')
 
     @admin.display(description='Tipo')
     def tipo_voluntario(self, obj):
