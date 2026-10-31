@@ -7,6 +7,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.cadastro import VERSAO_AVISO
+from core.utils_teste import STORAGES_TESTE
 from voluntarios.models import Advogado, Voluntario
 from .models import Assistida, PendenciaCadastro, RegistroProntuario
 
@@ -135,8 +136,7 @@ class ApiCadastroAssistidaTests(TestCase):
         self.assertEqual(self.client.post('/api/vitimas/adicionar/').status_code, 404)
 
 
-# O storage de produção (Manifest) exige `collectstatic`; nos testes usamos o simples.
-@override_settings(STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage')
+@override_settings(STORAGES=STORAGES_TESTE)
 class PaginasPublicasTests(TestCase):
     def test_pagina_de_cadastro(self):
         r = self.client.get(reverse('cadastro_assistida'))
@@ -151,7 +151,7 @@ class PaginasPublicasTests(TestCase):
         self.assertContains(self.client.get('/'), '/cadastro-assistida/')
 
 
-@override_settings(STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage')
+@override_settings(STORAGES=STORAGES_TESTE)
 class AreaInternaTests(TestCase):
     @classmethod
     def setUpTestData(cls):

@@ -1,15 +1,60 @@
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
+from core.utils_teste import STORAGES_TESTE
 from services import cpf_valido
 
 PASTA_CORE = Path(settings.BASE_DIR) / 'core'
 PAGINAS_COM_FORMULARIO = (
     'cadastro_assistida', 'voluntario_advogado', 'voluntario_bacharel', 'voluntario_estagiario',
 )
+
+
+class ConfiguracaoProducaoTests(SimpleTestCase):
+    """Carrega o settings num processo novo, como a hospedagem faz."""
+
+    NOMES = [
+        'SECURE_SSL_REDIRECT', 'SESSION_COOKIE_SECURE', 'CSRF_COOKIE_SECURE', 'SECURE_HSTS_SECONDS',
+        'SESSION_COOKIE_AGE', 'SESSION_EXPIRE_AT_BROWSER_CLOSE', 'CSRF_TRUSTED_ORIGINS',
+    ]
+
+    def carregar(self, **env):
+        codigo = (
+            'import json, django; django.setup(); from django.conf import settings as s; '
+            f'print(json.dumps({{n: getattr(s, n) for n in {self.NOMES!r}}} | '
+            '{"db": {k: s.DATABASES["default"].get(k) for k in '
+            '("CONN_MAX_AGE", "DISABLE_SERVER_SIDE_CURSORS", "OPTIONS")}}, default=str))'
+        )
+        ambiente = {
+            **os.environ, 'DJANGO_SETTINGS_MODULE': 'server.settings', 'SECRET_KEY': 'x' * 60,
+            'DEBUG': 'False', 'DATABASE_URL': 'postgres://u:s@exemplo.invalid:6543/banco', **env,
+        }
+        saida = subprocess.run([sys.executable, '-c', codigo], capture_output=True, text=True,
+                               env=ambiente, cwd=settings.BASE_DIR, check=True)
+        return json.loads(saida.stdout)
+
+    def test_producao_exige_https_e_cookies_seguros(self):
+        c = self.carregar(CSRF_TRUSTED_ORIGINS='https://a.example, https://b.example')
+        self.assertTrue(c['SECURE_SSL_REDIRECT'])
+        self.assertTrue(c['SESSION_COOKIE_SECURE'])
+        self.assertTrue(c['CSRF_COOKIE_SECURE'])
+        self.assertGreater(c['SECURE_HSTS_SECONDS'], 0)
+        self.assertEqual(c['SESSION_COOKIE_AGE'], 3600)
+        self.assertTrue(c['SESSION_EXPIRE_AT_BROWSER_CLOSE'])
+        self.assertEqual(c['CSRF_TRUSTED_ORIGINS'], ['https://a.example', 'https://b.example'])
+
+    def test_banco_postgres_usa_ssl_e_serve_para_o_pooler(self):
+        db = self.carregar()['db']
+        self.assertEqual(db['OPTIONS']['sslmode'], 'require')
+        self.assertEqual(db['CONN_MAX_AGE'], 0)
+        self.assertTrue(db['DISABLE_SERVER_SIDE_CURSORS'])
 
 
 class CpfTests(SimpleTestCase):
@@ -50,7 +95,7 @@ class ArquivosPublicosTests(SimpleTestCase):
             self.assertNotIn('fonts.gstatic.com', texto, arquivo)
 
 
-@override_settings(STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage')
+@override_settings(STORAGES=STORAGES_TESTE)
 class PaginasTests(TestCase):
     def test_aviso_de_privacidade_abre(self):
         r = self.client.get(reverse('privacidade'))
