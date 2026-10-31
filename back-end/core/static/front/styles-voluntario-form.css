@@ -554,3 +554,35 @@ body {
         font-size: 0.95rem;
     }
 }
+
+/* Aceite e opções marcáveis */
+.form-check label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.form-check input[type="checkbox"] {
+    width: auto;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.form-check a {
+    color: #ec6b61;
+}
+
+/* Campo isca: fora da tela para pessoas, visível para robôs */
+.campo-isca {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.footer-bottom a {
+    color: inherit;
+}

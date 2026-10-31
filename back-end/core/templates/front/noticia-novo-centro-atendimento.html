@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inauguração do Novo Centro de Atendimento - Superação da Violência Doméstica</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oregano:wght@400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
     <link rel="stylesheet" href="{% static 'front/styles-noticia.css' %}">
 </head>
 <body>
@@ -200,7 +198,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados.</p>
+                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados. <a href="{% url 'privacidade' %}">Aviso de privacidade</a></p>
             </div>
         </div>
     </footer>

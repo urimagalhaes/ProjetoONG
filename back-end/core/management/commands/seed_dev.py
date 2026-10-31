@@ -69,7 +69,8 @@ class Command(BaseCommand):
         def assistida(cpf, nome, apelido, idade):
             obj, _ = Assistida.objects.get_or_create(cpf_assistida=cpf, defaults=dict(
                 nome_assistida=nome, apelido_assistida=apelido, idade_assistida=idade,
-                cep_assistida='24020000', rua_assistida='Rua Exemplo', num_endereco_assistida=42,
+                cep_assistida='24020000', rua_assistida='Rua Exemplo', num_endereco_assistida='42',
+                telefone_assistida='21999990000', melhor_horario='de manhã',
                 cidade_assistida='Niterói', estado_assistida='RJ'))
             return obj
 

@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviso de Privacidade - Superação da Violência Doméstica</title>
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
+    <link rel="stylesheet" href="{% static 'front/styles-cadastro.css' %}">
+</head>
+<body>
+    <!-- Menu Fixo -->
+    <header class="header-fixed">
+        <div class="container">
+            <div class="logo">
+                <a href="{% url 'index' %}">
+                    <img src="{% static 'front/logotipo-cor.svg' %}" alt="Superação da Violência Doméstica" width="300" height="75">
+                </a>
+            </div>
+            <nav class="main-nav">
+                <a href="{% url 'index' %}#sou-vitima" class="nav-btn">SOU VÍTIMA</a>
+                <a href="{% url 'voluntarios' %}" class="nav-btn">PROGRAMA DE VOLUNTÁRIOS</a>
+                <a href="{% url 'voluntario_estagiario' %}" class="nav-btn">PROGRAMA DE ESTÁGIO</a>
+                
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+        </div>
+    </section>
+
+    <!-- Aviso de privacidade -->
+    <section class="form-section">
+        <div class="container aviso-privacidade">
+            <h2>Aviso de Privacidade</h2>
+            <div class="important-notice">
+                <strong>Texto provisório, ainda sem validação jurídica. Versão {{ versao_aviso }}.</strong>
+            </div>
+
+            <h3>Quem cuida dos seus dados</h3>
+            <p>Instituto Superação da Violência Doméstica. CNPJ e canal de contato: a confirmar.</p>
+
+            <h3>Quais dados coletamos</h3>
+            <p><strong>Assistidas:</strong> nome, como gostaria de ser chamada, CPF, idade, telefone, melhor horário para contato, se podemos deixar recado e endereço.</p>
+            <p><strong>Voluntários:</strong> nome, e-mail, data de nascimento, sexo, CPF, RG, telefone, Instagram (opcional), endereço e dados de formação ou OAB.</p>
+
+            <h3>Para que usamos</h3>
+            <p>Para entrar em contato, fazer o acolhimento e o atendimento das assistidas, e para organizar o programa de voluntários. Não vendemos seus dados e não os usamos para publicidade.</p>
+
+            <h3>Base legal</h3>
+            <p>Sua concordância neste formulário fica registrada com data e versão do aviso. As demais bases legais serão definidas com a assessoria jurídica.</p>
+
+            <h3>Com quem os dados são compartilhados</h3>
+            <p><strong>ViaCEP:</strong> ao digitar o CEP no cadastro de assistidas, seu navegador envia somente esse número ao serviço ViaCEP, para preencher o endereço.</p>
+            <p><strong>Hospedagem:</strong> os dados ficam em empresas contratadas para manter o site e o banco de dados no ar. Empresas estrangeiras podem participar desse serviço.</p>
+            <p><strong>Equipe:</strong> somente as pessoas responsáveis pelo seu atendimento ou pela coordenação devem ter acesso.</p>
+
+            <h3>Por quanto tempo guardamos</h3>
+            <p>Pelo tempo necessário ao atendimento e às obrigações legais. O prazo exato será definido com a assessoria jurídica.</p>
+
+            <h3>Seus direitos</h3>
+            <p>Você pode pedir a confirmação do uso, o acesso, a correção, a eliminação ou a portabilidade dos seus dados, além de retirar sua concordância, conforme o art. 18 da Lei Geral de Proteção de Dados.</p>
+
+            <h3>Sua segurança</h3>
+            <p>Se outra pessoa usa este aparelho, prefira uma janela anônima do navegador e feche-a ao terminar.</p>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-message">
+                    <h3>Você Não Está Sozinha</h3>
+                    <p>Se você ou alguém que conhece está sofrendo violência doméstica, procure ajuda. Estamos aqui para apoiá-la em cada passo da sua jornada de superação.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-nav">
+                        <h4>Navegação</h4>
+                        <a href="{% url 'index' %}#sou-vitima">Sou Vítima</a>
+                        <a href="{% url 'voluntarios' %}">Programa de Voluntários</a>
+                        <a href="{% url 'voluntario_estagiario' %}">Programa de Estágio</a>
+                        <a href="{% url 'index' %}#gruta">GRUTA</a>
+                        <a href="{% url 'index' %}#sobre-nos">Sobre Nós</a>
+                        <a href="{% url 'index' %}#sobre-autora">Sobre a Autora</a>
+                    </div>
+                    
+                    <div class="footer-social">
+                        <h4>Redes Sociais</h4>
+                        <div class="social-links">
+                            <a href="https://www.facebook.com/superacaodaviolenciadomestica/" >Facebook</a>
+                            <a href="https://www.instagram.com/superacaodaviolenciadomestica" >Instagram</a>
+                            <a href="https://www.youtube.com/channel/UCs70vMpWbElsnGNhkgB3ivw" >Youtube</a>
+                            <a href="https://br.pinterest.com/marilhaboldt/supera%C3%A7%C3%A3o-da-viol%C3%AAncia-dom%C3%A9stica/">Pinterest</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados. <a href="{% url 'privacidade' %}">Aviso de privacidade</a></p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -7,5 +7,4 @@ urlpatterns = [
     path('api/voluntarios/', include('voluntarios.urls')),
     path('assistidas/', include('assistidas.urls_paginas')),
     path('api/assistidas/', include('assistidas.urls')),
-    path('api/atendimentos/', include('atendimentos.urls')),
 ]

@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import Assistida, RegistroProntuario
+from .models import Assistida, PendenciaCadastro, RegistroProntuario
 
 
 class RegistroProntuarioInline(admin.StackedInline):
@@ -40,6 +41,13 @@ class AssistidaAdmin(admin.ModelAdmin):
                 'apelido_assistida',
             )
         }),
+        ('Contato', {
+            'fields': (
+                'telefone_assistida',
+                'pode_deixar_recado',
+                'melhor_horario',
+            )
+        }),
         ('Endereço', {
             'fields': (
                 'cep_assistida',
@@ -57,6 +65,21 @@ class AssistidaAdmin(admin.ModelAdmin):
         url = reverse('assistida_prontuario', args=[obj.pk])
         total = obj.registros_prontuario.count()
         return format_html('<a href="{}">Abrir ({})</a>', url, total)
+
+
+@admin.register(PendenciaCadastro)
+class PendenciaCadastroAdmin(admin.ModelAdmin):
+    list_display = ['id_pendencia', 'tipo', 'criado_em', 'resolvida_em']
+    list_filter = ['tipo', 'resolvida_em']
+    readonly_fields = ['id_pendencia', 'tipo', 'dados', 'criado_em', 'resolvida_em']
+    actions = ['marcar_resolvida']
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.action(description='Marcar como resolvida')
+    def marcar_resolvida(self, request, queryset):
+        queryset.filter(resolvida_em__isnull=True).update(resolvida_em=timezone.now())
 
 
 @admin.register(RegistroProntuario)

@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Assistidas - Superação da Violência Doméstica</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oregano:wght@400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
     <link rel="stylesheet" href="{% static 'front/styles-cadastro.css' %}">
 </head>
 <body>
@@ -81,6 +79,32 @@
                                placeholder="Ex: 25">
                     </div>
 
+                    <!-- Contato -->
+                    <div class="form-group full-width">
+                        <h3>Contato</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefone_assistida">Telefone com DDD *</label>
+                        <input type="tel" id="telefone_assistida" name="telefone_assistida" required
+                               placeholder="(00) 00000-0000"
+                               maxlength="15">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="melhor_horario">Melhor horário para falar com você</label>
+                        <input type="text" id="melhor_horario" name="melhor_horario"
+                               maxlength="60"
+                               placeholder="Ex: de manhã, depois das 14h">
+                    </div>
+
+                    <div class="form-group full-width form-check">
+                        <label for="pode_deixar_recado">
+                            <input type="checkbox" id="pode_deixar_recado" name="pode_deixar_recado">
+                            <span>Podemos deixar recado neste telefone. Se não for seguro, deixe sem marcar.</span>
+                        </label>
+                    </div>
+
                     <!-- Endereço -->
                     <div class="form-group full-width">
                         <h3>Endereço</h3>
@@ -97,7 +121,14 @@
                         <label for="enderecorua_assistida">Rua/Avenida *</label>
                         <input type="text" id="enderecorua_assistida" name="enderecorua_assistida" required 
                                maxlength="50" 
-                               placeholder="Ex: Rua das Flores, 123">
+                               placeholder="Ex: Rua das Flores">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numero_assistida">Número *</label>
+                        <input type="text" id="numero_assistida" name="numero_assistida" required
+                               maxlength="10"
+                               placeholder="Ex: 123 ou s/n">
                     </div>
 
                     <div class="form-group">
@@ -148,6 +179,20 @@
                         </select>
                     </div>
 
+                    <!-- Aviso de privacidade -->
+                    <div class="form-group full-width form-check">
+                        <label for="aceite_aviso">
+                            <input type="checkbox" id="aceite_aviso" name="aceite_aviso" required>
+                            <span>Li o <a href="{% url 'privacidade' %}" target="_blank" rel="noopener">aviso de privacidade</a> e concordo com o uso dos meus dados para o meu atendimento. *</span>
+                        </label>
+                    </div>
+
+                    <!-- Campo invisível contra robôs -->
+                    <div class="campo-isca" aria-hidden="true">
+                        <label for="website">Não preencha este campo</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <!-- Botões -->
                     <div class="form-group full-width form-buttons">
                         <button type="submit" class="submit-btn">Enviar Cadastro</button>
@@ -191,7 +236,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados.</p>
+                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados. <a href="{% url 'privacidade' %}">Aviso de privacidade</a></p>
             </div>
         </div>
     </footer>

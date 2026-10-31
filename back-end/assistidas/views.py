@@ -1,58 +1,59 @@
-import json
-
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
 
-from services import formatar_cpf
+from core.cadastro import dados_do_aceite, receber_cadastro, texto
+from services import apenas_digitos, cpf_valido, formatar_cpf
 from .models import Assistida
 
 
 # ---------------------------------------------------------------- API pública
-@csrf_exempt
+CAMPOS_PUBLICOS = (
+    'cpf', 'nome', 'cep', 'idade', 'apelido', 'cidade', 'estado', 'rua', 'num_endereco',
+    'complementoEndereco', 'telefone', 'pode_deixar_recado', 'melhor_horario',
+)
+
+
+def _salvar_assistida(data):
+    cpf = texto(data, 'cpf')
+    cep = apenas_digitos(texto(data, 'cep'))
+    telefone = apenas_digitos(texto(data, 'telefone'))
+
+    erros = {}
+    if not cpf_valido(cpf):
+        erros['cpf'] = 'CPF inválido.'
+    if len(cep) != 8:
+        erros['cep'] = 'CEP inválido.'
+    if len(telefone) not in (10, 11):
+        erros['telefone'] = 'Informe o telefone com DDD.'
+    if erros:
+        raise ValidationError(erros)
+
+    assistida = Assistida(
+        cpf_assistida=formatar_cpf(cpf),
+        nome_assistida=texto(data, 'nome'),
+        cep_assistida=cep,
+        idade_assistida=data.get('idade'),
+        apelido_assistida=texto(data, 'apelido'),
+        cidade_assistida=texto(data, 'cidade'),
+        estado_assistida=texto(data, 'estado'),
+        rua_assistida=texto(data, 'rua'),
+        num_endereco_assistida=texto(data, 'num_endereco'),
+        complemento_endereco_assistida=texto(data, 'complementoEndereco'),
+        telefone_assistida=telefone,
+        pode_deixar_recado=data.get('pode_deixar_recado') is True,
+        melhor_horario=texto(data, 'melhor_horario'),
+        **dados_do_aceite(),
+    )
+    # A unicidade fica a cargo do banco, para cair na pendência sem revelar nada.
+    assistida.full_clean(validate_unique=False)
+    assistida.save()
+
+
 def adicionar(request):
-    if request.method != 'POST':
-        return JsonResponse({
-            'success': False,
-            'message': 'Método não permitido'
-        }, status=405)
-
-    try:
-        data = json.loads(request.body)
-
-        assistida = Assistida.objects.create(
-            cpf_assistida=formatar_cpf(data.get('cpf')),
-            nome_assistida=data.get('nome'),
-            cep_assistida=data.get('cep'),
-            idade_assistida=data.get('idade'),
-            apelido_assistida=data.get('apelido'),
-            cidade_assistida=data.get('cidade'),
-            estado_assistida=data.get('estado'),
-            rua_assistida=data.get('rua'),
-            num_endereco_assistida=data.get('num_endereco'),
-            complemento_endereco_assistida=data.get('complementoEndereco'),
-        )
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Assistida cadastrada com sucesso!',
-            'id': assistida.id_assistida
-        }, status=201)
-
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'message': 'JSON inválido'
-        }, status=400)
-
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': f'Erro ao cadastrar: {str(e)}'
-        }, status=400)
+    return receber_cadastro(request, 'assistida', _salvar_assistida, CAMPOS_PUBLICOS)
 
 
 # ------------------------------------------- Páginas internas (só equipe/staff)

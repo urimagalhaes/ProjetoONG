@@ -1,10 +1,15 @@
 from django.shortcuts import render
 
+from .cadastro import VERSAO_AVISO
+
 def index(request):
     return render(request, 'front/index.html')
 
 def cadastro_assistida(request):
     return render(request, 'front/cadastro-assistida.html')
+
+def privacidade(request):
+    return render(request, 'front/privacidade.html', {'versao_aviso': VERSAO_AVISO})
 
 def voluntarios(request):
     return render(request, 'front/voluntarios.html')

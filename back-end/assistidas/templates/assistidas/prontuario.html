@@ -9,7 +9,10 @@
         {% if assistida.apelido_assistida %}Prefere ser chamada de <strong>{{ assistida.apelido_assistida }}</strong> · {% endif %}
         {{ assistida.idade_assistida }} anos · CPF {{ assistida.cpf_assistida }}<br>
         {{ assistida.rua_assistida }}, {{ assistida.num_endereco_assistida }}{% if assistida.complemento_endereco_assistida %} — {{ assistida.complemento_endereco_assistida }}{% endif %}
-        · {{ assistida.cidade_assistida }}/{{ assistida.estado_assistida }} · CEP {{ assistida.cep_assistida }}
+        · {{ assistida.cidade_assistida }}/{{ assistida.estado_assistida }} · CEP {{ assistida.cep_assistida }}<br>
+        {% if assistida.telefone_assistida %}Telefone {{ assistida.telefone_assistida }}{% else %}Telefone não informado{% endif %}
+        {% if assistida.melhor_horario %}· Melhor horário: {{ assistida.melhor_horario }}{% endif %}
+        · <strong>{% if assistida.pode_deixar_recado %}Pode deixar recado{% else %}Não deixar recado{% endif %}</strong>
     </p>
 </div>
 

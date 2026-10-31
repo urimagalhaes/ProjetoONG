@@ -416,3 +416,54 @@ body {
         font-size: 1rem;
     }
 }
+
+/* Aceite e opções marcáveis */
+.form-check label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.form-check input[type="checkbox"] {
+    width: auto;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.form-check a {
+    color: #ec6b61;
+}
+
+/* Campo isca: fora da tela para pessoas, visível para robôs */
+.campo-isca {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.footer-bottom a {
+    color: inherit;
+}
+
+/* Aviso de privacidade */
+.aviso-privacidade {
+    max-width: 800px;
+}
+
+.aviso-privacidade h2 {
+    margin-bottom: 20px;
+}
+
+.aviso-privacidade h3 {
+    margin: 28px 0 8px;
+    color: #ec6b61;
+}
+
+.aviso-privacidade p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}

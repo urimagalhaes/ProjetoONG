@@ -66,35 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach(input => {
-        input.addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-
-                if (file.size > 5 * 1024 * 1024) {
-                    showError(this, 'Arquivo muito grande. Máximo 5MB.');
-                    this.value = '';
-                    return;
-                }
-
-
-                const allowedTypes = this.accept.split(',').map(type => type.trim());
-                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-
-                if (!allowedTypes.includes(fileExtension)) {
-                    showError(this, 'Tipo de arquivo não permitido.');
-                    this.value = '';
-                    return;
-                }
-
-                clearError(this);
-                showFileStatus(this, 'Arquivo selecionado: ' + file.name, 'success');
-            }
-        });
-    });
-
-
     const form = document.getElementById('volunteerForm');
 
     form.addEventListener('submit', function (e) {
@@ -108,7 +79,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const requiredFields = form.querySelectorAll('[required]');
         requiredFields.forEach(field => {
-            if (!field.value.trim()) {
+            const preenchido = field.type === 'checkbox' ? field.checked : field.value.trim();
+            if (!preenchido) {
                 showError(field, 'Este campo é obrigatório.');
                 isValid = false;
             }
@@ -134,13 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
             isValid = false;
         }
 
-        fileInputs.forEach(input => {
-            if (input.hasAttribute('required') && !input.files[0]) {
-                showError(input, 'Este documento é obrigatório.');
-                isValid = false;
-            }
-        });
-
         if (isValid) {
             const submitBtn = form.querySelector('.submit-btn');
             submitBtn.classList.add('loading');
@@ -160,71 +125,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 endereco: document.getElementById('enderecorua_voluntario').value,
                 cidade: document.getElementById('enderecocidade_voluntario').value,
                 estado: document.getElementById('enderecoestado_voluntario').value || '',
-                cpfupload: true,
-                fotoupload: true,
-                termoupload: true
+                aceite: document.getElementById('aceite_aviso').checked,
+                website: document.getElementById('website').value
             };
 
-            try {
-                DadoOAB = document.getElementById('oab_voluntarioadvogado').value
-                dados["oab"] = DadoOAB
-            } catch (e) {
-                console.log("ERRO:", e)
+            let rota = '/api/voluntarios/adicionar/estagiario/';
+            const oab = document.getElementById('oab_voluntarioadvogado');
+            const cursoBacharel = document.getElementById('cursoformacao_voluntariobacharel');
+            const cursoEstagiario = document.getElementById('cursonome_voluntarioestagiario');
+
+            if (oab) {
+                dados.oab = oab.value;
+                rota = '/api/voluntarios/adicionar/advogado/';
+            } else if (cursoBacharel) {
+                dados.cursoBacharel = cursoBacharel.value;
+                rota = '/api/voluntarios/adicionar/bacharel/';
+            } else if (cursoEstagiario) {
+                dados.curso = cursoEstagiario.value;
+                dados.periodo = document.getElementById('cursoperido_voluntarioestagiario').value;
             }
 
-            try {
-                DADOScursoBacharel = document.getElementById('cursoformacao_voluntariobacharel').value
-                dados["cursoBacharel"] = DADOScursoBacharel
-            } catch (e) {
-                console.log("ERRO:", e)
-            }
-
-            try {
-                DADOSCurso = document.getElementById('cursonome_voluntarioestagiario').value
-                DADOSPeriodo = document.getElementById('cursoperido_voluntarioestagiario').value
-                dados["curso"] = DADOSCurso
-                dados["periodo"] = DADOSPeriodo
-            } catch (e) {
-                console.log("ERRO:", e)
-            }
-
-            URL_Base = 'http://146.235.62.209:8000/'
-            Rota = ''
-
-            if (dados.oab) {
-                Rota = 'api/voluntarios/adicionar/advogado/'
-            } else if (dados.cursoBacharel) {
-                Rota = 'api/voluntarios/adicionar/bacharel/'
-            } else {
-                Rota = 'api/voluntarios/adicionar/estagiario/'
-            }
-
-            fetch(`${URL_Base}${Rota}`, {
+            fetch(rota, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
                 },
                 body: JSON.stringify(dados)
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na resposta da API');
+                .then(response => response.json().catch(() => ({})).then(data => {
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Não foi possível enviar agora.');
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        alert('Cadastro realizado com sucesso! Entraremos em contato em breve.');
-                        console.log('Resposta da API:', data);
-                        window.location.href = '/voluntarios/';
-                    } else {
-                        throw new Error(data.message || 'Erro ao cadastrar');
-                    }
-                })
+                    alert(data.message);
+                    window.location.href = '/voluntarios/';
+                }))
                 .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao enviar cadastro: ' + error.message + '. Tente novamente.');
-
+                    alert(error.message + ' Tente novamente.');
 
                     submitBtn.classList.remove('loading');
                     submitBtn.disabled = false;
@@ -274,23 +211,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function showFileStatus(field, message, type) {
-        const formGroup = field.closest('.form-group');
-
-        let statusElement = formGroup.querySelector('.file-status');
-        if (!statusElement) {
-            statusElement = document.createElement('div');
-            statusElement.className = 'file-status';
-            formGroup.appendChild(statusElement);
-        }
-
-        statusElement.className = `file-status ${type}`;
-        statusElement.innerHTML = `
-            <span class="icon">${type === 'success' ? '✓' : '✗'}</span>
-            <span>${message}</span>
-        `;
-    }
-
     function validarCPF(cpf) {
         cpf = cpf.replace(/\D/g, '');
 
@@ -302,14 +222,14 @@ document.addEventListener('DOMContentLoaded', function () {
             soma += parseInt(cpf.charAt(i)) * (10 - i);
         }
         let resto = 11 - (soma % 11);
-        let digito1 = resto < 2 ? 0 : resto;
+        let digito1 = resto > 9 ? 0 : resto;
 
         soma = 0;
         for (let i = 0; i < 10; i++) {
             soma += parseInt(cpf.charAt(i)) * (11 - i);
         }
         resto = 11 - (soma % 11);
-        let digito2 = resto < 2 ? 0 : resto;
+        let digito2 = resto > 9 ? 0 : resto;
 
         return digito1 === parseInt(cpf.charAt(9)) && digito2 === parseInt(cpf.charAt(10));
     }

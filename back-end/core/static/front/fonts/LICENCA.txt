@@ -1,0 +1,6 @@
+Inter: Copyright The Inter Project Authors (https://github.com/rsms/inter)
+Oregano: Copyright The Oregano Project Authors
+
+Licenciadas sob a SIL Open Font License, versão 1.1:
+https://openfontlicense.org
+Arquivos obtidos do Google Fonts, subconjunto latino.

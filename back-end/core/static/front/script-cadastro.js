@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Máscaras para CPF e CEP
     const cpfInput = document.getElementById('cpf_assistida');
     const cepInput = document.getElementById('cep_assistida');
+    const telefoneInput = document.getElementById('telefone_assistida');
 
     // Máscara CPF
     cpfInput.addEventListener('input', function (e) {
@@ -19,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function () {
         e.target.value = value;
     });
 
+    // Máscara telefone
+    telefoneInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+        e.target.value = value;
+    });
+
     // Buscar endereço pelo CEP
     cepInput.addEventListener('blur', function () {
         const cep = this.value.replace(/\D/g, '');
@@ -33,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('enderecoestado_assistida').value = data.uf || '';
                     }
                 })
-                .catch(error => {
-                    console.log('Erro ao buscar CEP:', error);
+                .catch(() => {
+                    // Sem resposta do ViaCEP, a pessoa digita o endereço à mão.
                 });
         }
     });
@@ -57,10 +66,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const rua = document.getElementById('enderecorua_assistida').value.trim();
         const cidade = document.getElementById('enderecocidade_assistida').value.trim();
         const estado = document.getElementById('enderecoestado_assistida').value;
-        const complemento =  document.getElementById('enderecocomplemento_assistida').value;
+        const numero = document.getElementById('numero_assistida').value.trim();
+        const complemento = document.getElementById('enderecocomplemento_assistida').value;
+        const telefone = telefoneInput.value;
+        const aceite = document.getElementById('aceite_aviso').checked;
 
         // Verificar campos obrigatórios
-        if (!nome || !apelido || !cpf || !idade || !cep || !rua || !cidade || !estado || !complemento) {
+        if (!nome || !apelido || !cpf || !idade || !telefone || !cep || !rua || !numero || !cidade || !estado) {
             alert('Por favor, preencha todos os campos obrigatórios.');
             return;
         }
@@ -77,6 +89,19 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Validar telefone
+        const digitosTelefone = telefone.replace(/\D/g, '').length;
+        if (digitosTelefone < 10 || digitosTelefone > 11) {
+            alert('Por favor, digite o telefone com DDD.');
+            return;
+        }
+
+        // Validar aceite do aviso de privacidade
+        if (!aceite) {
+            alert('Para enviar, é preciso aceitar o aviso de privacidade.');
+            return;
+        }
+
         // Adicionar loading no botão
         if (submitBtn) {
             submitBtn.classList.add('loading');
@@ -86,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Preparar os dados do formulário
         const dados = {
-            cpf: cpf, // Remove pontos e traços
+            cpf: cpf,
             nome: nome,
             cep: cep.replace(/\D/g, ''),
             idade: parseInt(idade),
@@ -94,41 +119,33 @@ document.addEventListener('DOMContentLoaded', function () {
             cidade: cidade,
             estado: estado,
             rua: rua,
-            num_endereco: rua.match(/\d+/g)?.[0] || '',
-            complementoEndereco: complemento
+            num_endereco: numero,
+            complementoEndereco: complemento,
+            telefone: telefone,
+            pode_deixar_recado: document.getElementById('pode_deixar_recado').checked,
+            melhor_horario: document.getElementById('melhor_horario').value.trim(),
+            aceite: aceite,
+            website: document.getElementById('website').value
         };
-
-        console.log('Enviando dados:', dados); // Para debug
 
         // Enviar para a API
         fetch('/api/assistidas/adicionar/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
             },
             body: JSON.stringify(dados)
         })
-        .then(response => {
-            console.log('Status da resposta:', response.status); // Para debug
-            
-            if (!response.ok) {
-                throw new Error(`Erro na resposta da API: ${response.status}`);
+        .then(response => response.json().catch(() => ({})).then(data => {
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Não foi possível enviar agora.');
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Resposta da API:', data); // Para debug
-            
-            if (data.success) {
-                alert('Cadastro realizado com sucesso! Entraremos em contato em breve.');
-                window.location.href = "/";
-            } else {
-                throw new Error(data.message || 'Erro ao cadastrar');
-            }
-        })
+            alert(data.message);
+            window.location.href = "/";
+        }))
         .catch(error => {
-            console.error('Erro completo:', error);
-            alert('Erro ao enviar cadastro: ' + error.message + '. Tente novamente.');
+            alert(error.message + ' Tente novamente.');
 
             // Remover loading
             if (submitBtn) {
@@ -154,14 +171,14 @@ document.addEventListener('DOMContentLoaded', function () {
             soma += parseInt(cpf.charAt(i)) * (10 - i);
         }
         let resto = 11 - (soma % 11);
-        let digito1 = resto < 2 ? 0 : resto;
+        let digito1 = resto > 9 ? 0 : resto;
 
         soma = 0;
         for (let i = 0; i < 10; i++) {
             soma += parseInt(cpf.charAt(i)) * (11 - i);
         }
         resto = 11 - (soma % 11);
-        let digito2 = resto < 2 ? 0 : resto;
+        let digito2 = resto > 9 ? 0 : resto;
 
         return digito1 === parseInt(cpf.charAt(9)) && digito2 === parseInt(cpf.charAt(10));
     }

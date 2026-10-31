@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Estagiário - Superação da Violência Doméstica</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oregano:wght@400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'front/fontes.css' %}">
     <link rel="stylesheet" href="{% static 'front/styles-voluntario-form.css' %}">
 </head>
 <body>
@@ -47,7 +45,7 @@
                 </div>
             </div>
 
-            <form class="volunteer-form" id="volunteerForm" method="post" enctype="multipart/form-data" action="{% url 'voluntario_estagiario' %}">
+            <form class="volunteer-form" id="volunteerForm" method="post" action="{% url 'voluntario_estagiario' %}">
                 {% csrf_token %}
                 <div class="form-grid">
                     <!-- Dados Pessoais -->
@@ -193,31 +191,18 @@
                         </select>
                     </div>
 
-                    <!-- Upload de Documentos -->
-                    <div class="form-group full-width">
-                        <h3>Upload de Documentos</h3>
-                        <p class="upload-info">Faça o upload dos documentos solicitados (formatos aceitos: PDF, JPG, PNG - máximo 5MB cada)</p>
+                    <!-- Aviso de privacidade -->
+                    <div class="form-group full-width form-check">
+                        <label for="aceite_aviso">
+                            <input type="checkbox" id="aceite_aviso" name="aceite_aviso" required>
+                            <span>Li o <a href="{% url 'privacidade' %}" target="_blank" rel="noopener">aviso de privacidade</a> e concordo com o uso dos meus dados para o programa de voluntários. *</span>
+                        </label>
                     </div>
 
-                    <div class="form-group">
-                        <label for="uploadcpf_voluntario">Cópia do CPF *</label>
-                        <input type="file" id="uploadcpf_voluntario" name="uploadcpf_voluntario" 
-                               accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small>Arquivo obrigatório</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="uploadfoto_voluntario">Foto 3x4 *</label>
-                        <input type="file" id="uploadfoto_voluntario" name="uploadfoto_voluntario" 
-                               accept=".jpg,.jpeg,.png" required>
-                        <small>Arquivo obrigatório</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="uploadtemo_voluntario">Termo de Compromisso *</label>
-                        <input type="file" id="uploadtemo_voluntario" name="uploadtemo_voluntario" 
-                               accept=".pdf" required>
-                        <small>Baixe, assine e faça upload do <a href="#">termo de compromisso</a></small>
+                    <!-- Campo invisível contra robôs -->
+                    <div class="campo-isca" aria-hidden="true">
+                        <label for="website">Não preencha este campo</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                     </div>
 
                     <!-- Botões -->
@@ -263,7 +248,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados.</p>
+                <p>&copy; 2025 Superação da Violência Doméstica. Todos os direitos reservados. <a href="{% url 'privacidade' %}">Aviso de privacidade</a></p>
             </div>
         </div>
     </footer>

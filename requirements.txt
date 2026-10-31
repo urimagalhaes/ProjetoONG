@@ -1,7 +1,6 @@
 asgiref==3.10.0
 cffi==2.0.0
 Django==4.2.25
-django-cors-headers==4.9.0
 djangorestframework==3.16.1
 dj-database-url==2.2.0
 gunicorn==21.2.0

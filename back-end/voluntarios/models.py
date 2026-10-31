@@ -16,13 +16,16 @@ class Voluntario(models.Model):
     estado_voluntario = models.CharField(max_length=2)
     endereco_voluntario = models.CharField(max_length=50)
     telefone_voluntario = models.CharField(max_length=9)
-    instagram_voluntario = models.CharField(max_length=30)  
+    instagram_voluntario = models.CharField(max_length=30, blank=True, default='')
     cpf_voluntario = models.CharField(max_length=14, unique=True)  
     rg_voluntario = models.CharField(max_length=9)
-    cpfupload_voluntario = models.BooleanField()  
-    fotoupload_voluntario = models.BooleanField()  
-    termoupload_voluntario = models.BooleanField()  
-    
+    # Marcados pela equipe quando recebe o documento. O site não recebe arquivos.
+    cpfupload_voluntario = models.BooleanField(default=False)
+    fotoupload_voluntario = models.BooleanField(default=False)
+    termoupload_voluntario = models.BooleanField(default=False)
+    aceite_aviso_em = models.DateTimeField('Aceite do aviso em', blank=True, null=True, editable=False)
+    aceite_aviso_versao = models.CharField('Versão do aviso', max_length=10, blank=True, default='', editable=False)
+
     class Meta:
         db_table = 'Voluntarios'
     

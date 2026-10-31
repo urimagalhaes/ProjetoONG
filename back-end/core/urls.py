@@ -11,6 +11,7 @@ urlpatterns = [
     path('voluntarios/advogado/', views.voluntario_advogado, name='voluntario_advogado'),
     path('voluntarios/bacharel/', views.voluntario_bacharel, name='voluntario_bacharel'),
     path('estagio/', views.voluntario_estagiario, name='voluntario_estagiario'),
+    path('privacidade/', views.privacidade, name='privacidade'),
     path('noticia/campanha/', views.noticia_campanha, name='noticia_campanha'),
     path('noticia/parceria-universidades/', views.noticia_parceria, name='noticia_parceria'),
     path('noticia/novo-centro/', views.noticia_novo_centro, name='noticia_novo_centro'),

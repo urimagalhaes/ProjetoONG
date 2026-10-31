@@ -20,5 +20,5 @@ class AtendimentoTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             Atendimento.objects.create(id_assistida=b, data_atendimento=date(2026, 11, 3), hora_atendimento=time(15, 0))
 
-    def test_rota_de_teste_responde(self):
-        self.assertEqual(self.client.get('/api/atendimentos/adicionar/').json()['rota'], 'atendimentos')
+    def test_rota_de_teste_foi_removida(self):
+        self.assertEqual(self.client.get('/api/atendimentos/adicionar/').status_code, 404)

@@ -1,17 +1,20 @@
 import json
 from datetime import date
+from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from core.cadastro import VERSAO_AVISO
 from voluntarios.models import Advogado, Voluntario
-from .models import Assistida, RegistroProntuario
+from .models import Assistida, PendenciaCadastro, RegistroProntuario
 
 PAYLOAD = {
-    'cpf': '12345678901', 'nome': 'Maria Teste', 'cep': '24020000', 'idade': 30,
+    'cpf': '529.982.247-25', 'nome': 'Maria Teste', 'cep': '24020-000', 'idade': 30,
     'apelido': 'Mari', 'cidade': 'Niterói', 'estado': 'RJ', 'rua': 'Rua A',
-    'num_endereco': 10, 'complementoEndereco': 'ap 1',
+    'num_endereco': 's/n', 'complementoEndereco': 'ap 1', 'telefone': '(21) 99999-0000',
+    'pode_deixar_recado': False, 'melhor_horario': 'manhã', 'aceite': True,
 }
 
 
@@ -41,16 +44,85 @@ class ApiCadastroAssistidaTests(TestCase):
     def post(self, payload):
         return self.client.post(self.url, json.dumps(payload), content_type='application/json')
 
-    def test_cadastra_e_formata_cpf(self):
+    def test_cadastra_e_nao_devolve_id(self):
         r = self.post(PAYLOAD)
         self.assertEqual(r.status_code, 201)
-        a = Assistida.objects.get(pk=r.json()['id'])
-        self.assertEqual(a.cpf_assistida, '123.456.789-01')
+        self.assertNotIn('id', r.json())
+        a = Assistida.objects.get(cpf_assistida='529.982.247-25')
         self.assertEqual(a.nome_assistida, 'Maria Teste')
+        self.assertEqual(a.num_endereco_assistida, 's/n')
+        self.assertEqual(a.telefone_assistida, '21999990000')
+        self.assertEqual(a.cep_assistida, '24020000')
+        self.assertIs(a.pode_deixar_recado, False)
+        self.assertEqual(a.melhor_horario, 'manhã')
 
-    def test_cpf_duplicado_e_rejeitado(self):
-        self.assertEqual(self.post(PAYLOAD).status_code, 201)
-        self.assertEqual(self.post(PAYLOAD).status_code, 400)
+    def test_guarda_data_e_versao_do_aceite(self):
+        self.post(PAYLOAD)
+        a = Assistida.objects.get()
+        self.assertIsNotNone(a.aceite_aviso_em)
+        self.assertEqual(a.aceite_aviso_versao, VERSAO_AVISO)
+
+    def test_sem_aceite_e_rejeitado(self):
+        r = self.post({**PAYLOAD, 'aceite': False})
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(Assistida.objects.exists())
+
+    def test_cpf_repetido_tem_resposta_identica(self):
+        primeira = self.post(PAYLOAD)
+        segunda = self.post(PAYLOAD)
+        self.assertEqual(segunda.status_code, primeira.status_code)
+        self.assertEqual(segunda.content, primeira.content)
+
+    def test_cpf_repetido_nao_altera_cadastro_e_vira_pendencia(self):
+        self.post(PAYLOAD)
+        self.post({**PAYLOAD, 'nome': 'Nome Diferente', 'rua': 'Rua Nova'})
+        a = Assistida.objects.get()
+        self.assertEqual(a.nome_assistida, 'Maria Teste')
+        pendencia = PendenciaCadastro.objects.get()
+        self.assertEqual(pendencia.tipo, 'assistida')
+        self.assertEqual(pendencia.dados['nome'], 'Nome Diferente')
+        self.assertEqual(pendencia.dados['rua'], 'Rua Nova')
+        self.assertIsNone(pendencia.resolvida_em)
+
+    def test_pendencia_nao_guarda_campos_fora_da_lista(self):
+        self.post(PAYLOAD)
+        self.post({**PAYLOAD, 'campo_estranho': 'x' * 100})
+        self.assertNotIn('campo_estranho', PendenciaCadastro.objects.get().dados)
+
+    def test_cpf_invalido_retorna_400(self):
+        self.assertEqual(self.post({**PAYLOAD, 'cpf': '12345678901'}).status_code, 400)
+        self.assertFalse(Assistida.objects.exists())
+
+    def test_telefone_invalido_retorna_400(self):
+        self.assertEqual(self.post({**PAYLOAD, 'telefone': '123'}).status_code, 400)
+
+    def test_campo_obrigatorio_faltando_retorna_400(self):
+        dados = {**PAYLOAD}
+        del dados['nome']
+        self.assertEqual(self.post(dados).status_code, 400)
+
+    def test_corpo_que_nao_e_objeto_retorna_400(self):
+        self.assertEqual(self.post(['lista']).status_code, 400)
+
+    def test_honeypot_finge_sucesso_e_nao_grava(self):
+        r = self.post({**PAYLOAD, 'website': 'http://spam.example'})
+        self.assertEqual(r.status_code, 201)
+        self.assertFalse(Assistida.objects.exists())
+        self.assertFalse(PendenciaCadastro.objects.exists())
+
+    def test_erro_interno_nao_vaza_detalhes(self):
+        with mock.patch.object(Assistida, 'save', side_effect=RuntimeError('segredo interno')):
+            with self.assertLogs('core.cadastro', level='ERROR') as logs:
+                r = self.post(PAYLOAD)
+        self.assertEqual(r.status_code, 500)
+        self.assertNotIn('segredo', r.content.decode())
+        self.assertNotIn('segredo', ''.join(logs.output))
+
+    def test_csrf_e_exigido(self):
+        cliente = Client(enforce_csrf_checks=True)
+        r = cliente.post(self.url, json.dumps(PAYLOAD), content_type='application/json')
+        self.assertEqual(r.status_code, 403)
+        self.assertFalse(Assistida.objects.exists())
 
     def test_get_nao_permitido(self):
         self.assertEqual(self.client.get(self.url).status_code, 405)
@@ -122,6 +194,15 @@ class AreaInternaTests(TestCase):
         self.assertContains(r, 'Advogado(a)')
         self.assertContains(r, 'Linha 1<br>Linha 2')
 
+    def test_prontuario_mostra_contato_e_alerta_de_recado(self):
+        sem_recado = criar_assistida(
+            cpf_assistida='333.333.333-33', telefone_assistida='21999990000', melhor_horario='de manhã')
+        self.client.force_login(self.staff)
+        r = self.client.get(reverse('assistida_prontuario', args=[sem_recado.pk]))
+        self.assertContains(r, '21999990000')
+        self.assertContains(r, 'de manhã')
+        self.assertContains(r, 'Não deixar recado')
+
     def test_prontuario_so_mostra_registros_da_propria_assistida(self):
         RegistroProntuario.objects.create(id_assistida=self.joana, id_autor=self.autora, texto='SEGREDO DA JOANA')
         self.client.force_login(self.staff)
@@ -157,7 +238,9 @@ class AreaInternaTests(TestCase):
         U.objects.create_superuser('root', 'r@example.com', 'x')
         self.client.login(username='root', password='x')
         RegistroProntuario.objects.create(id_assistida=self.maria, id_autor=self.autora, texto='x')
+        PendenciaCadastro.objects.create(tipo='assistida', dados={'nome': 'Teste'})
         for nome in ('assistidas_assistida_changelist', 'assistidas_registroprontuario_changelist',
+                     'assistidas_pendenciacadastro_changelist',
                      'voluntarios_voluntario_changelist', 'atendimentos_atendimento_changelist'):
             self.assertEqual(self.client.get(reverse(f'admin:{nome}')).status_code, 200, nome)
         self.assertEqual(
