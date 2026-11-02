@@ -1,0 +1,60 @@
+# Testa e publica na Vercel a cada push na branch de produção.
+# Só push e disparo manual: forks e pull requests nunca recebem o VERCEL_TOKEN.
+name: Testar e publicar
+
+on:
+  push:
+    branches: [feat/painel]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: producao
+  cancel-in-progress: false
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SECRET_KEY: chave-so-para-os-testes
+      DEBUG: 'True'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Migrations em dia
+        working-directory: back-end
+        run: python manage.py makemigrations --check
+      - name: Testes
+        working-directory: back-end
+        run: python manage.py test
+
+  publicar:
+    needs: testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERCEL_ORG_ID: team_Hz0oNsUYlnl1n5dKHkhaC7Ap
+      VERCEL_PROJECT_ID: prj_C87WAAJsgkfu2s77DyHhaPybyjZi
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Publicar em produção
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Falta o secret VERCEL_TOKEN no repositório."
+            exit 1
+          fi
+          npx --yes vercel@65.9.0 deploy --prod --yes --token "$VERCEL_TOKEN"

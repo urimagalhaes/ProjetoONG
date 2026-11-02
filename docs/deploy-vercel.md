@@ -114,6 +114,20 @@ A resposta deve ser `200` com `{"ok": true}`. Sem o cabeçalho, `404`.
 - [ ] **Settings > Cron Jobs** mostra a rota `/manutencao/banco/`.
 - [ ] Em **Usage**, acompanhe o uso de CPU depois de alguns acessos. O limite do Hobby é de 4 horas por mês.
 
+## Deploy automático
+
+`.github/workflows/deploy.yml` roda os testes a cada push na `feat/painel` e, se passarem, publica em produção. Pushes só em `docs/` ou arquivos `.md` não publicam. Para disparar à mão, use **Actions > Testar e publicar > Run workflow**.
+
+O workflow precisa de um secret. Crie um token em <https://vercel.com/account/tokens>, com escopo só no time do projeto, e rode:
+
+```powershell
+gh secret set VERCEL_TOKEN -R urimagalhaes/ProjetoONG
+```
+
+Cole o token quando o comando pedir. Se der erro de permissão, o dono do repositório cadastra em **Settings > Secrets and variables > Actions**.
+
+**Migrations não rodam sozinhas.** Antes de enviar uma mudança nos models, rode o passo 3 com a URL do Session pooler. Assim a chave de cifragem não precisa ficar no GitHub.
+
 ## Se algo der errado
 
 - **Erro 400:** o domínio não está em `ALLOWED_HOSTS`.
