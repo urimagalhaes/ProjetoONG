@@ -1,0 +1,34 @@
+{% extends "painel/base.html" %}
+{% block titulo %}Acessos{% endblock %}
+{% block conteudo %}
+<h1>Registro de acessos</h1>
+<p class="meta">Quem fez o quê. O conteúdo acessado não é guardado, e o registro não pode ser alterado.</p>
+<form class="busca" method="get">
+    <input type="search" name="login" value="{{ login }}" placeholder="Filtrar por usuário" aria-label="Filtrar por usuário">
+    <select name="acao" aria-label="Filtrar por ação">
+        <option value="">Todas as ações</option>
+        {% for valor, nome in acoes %}<option value="{{ valor }}"{% if valor == acao %} selected{% endif %}>{{ nome }}</option>{% endfor %}
+    </select>
+    <button class="btn" type="submit">Filtrar</button>
+</form>
+<div class="card">
+    {% if pagina.object_list %}
+    <div class="tabela-rolagem"><table>
+        <thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Assistida</th></tr></thead>
+        <tbody>
+        {% for r in pagina %}
+            <tr>
+                <td>{{ r.criado_em|date:"d/m/Y H:i" }}</td>
+                <td>{{ r.login }}</td>
+                <td>{{ r.get_acao_display }}</td>
+                <td>{% if r.id_assistida %}<a href="{% url 'painel_assistida' r.id_assistida %}">#{{ r.id_assistida }}</a>{% else %}—{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% include "painel/_paginacao.html" %}
+    {% else %}
+    <p class="vazio">Nenhum registro encontrado.</p>
+    {% endif %}
+</div>
+{% endblock %}

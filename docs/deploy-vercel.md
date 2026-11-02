@@ -1,6 +1,6 @@
 # Publicar na Vercel com Supabase
 
-Este guia publica a branch `feat/lgpd-prontuario` nas contas pessoais, **só com dados fictícios**. Dados reais dependem do checklist final.
+Este guia publica a branch `feat/painel` nas contas pessoais, **só com dados fictícios**. Dados reais dependem do checklist final.
 
 Comandos em PowerShell, a partir da raiz do repositório. Valores entre `<...>` são seus. Segredos ficam só na Vercel e no seu gerenciador de senhas, nunca no Git nem em conversas.
 
@@ -92,10 +92,10 @@ Se o domínio final for outro, corrija `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS` 
 
 1. Abra `https://<projeto>.vercel.app/entrar/` e entre com o superusuário.
 2. Troque a senha e leia o código QR com um aplicativo autenticador. **Sem o celular não há como entrar:** quem recupera 2FA é outro superusuário, em **Administração > TOTP devices**, então crie dois superusuários.
-3. Em **Administração > Usuários**, crie os logins. Coloque a coordenadora no grupo `Coordenação` e marque "Membro da equipe". Atendentes ficam no grupo `Atendimento`.
-4. Em **Voluntários**, cadastre cada atendente e escolha o login no campo `usuario`.
-5. Cadastre assistidas fictícias pelo formulário público.
-6. Em **Vínculos de atendimento**, ligue voluntário e assistida. Sem vínculo, ninguém abre o prontuário, nem a coordenação nem o superusuário.
+3. Em `/painel/`, abra **Equipe > Adicionar à equipe** e preencha um formulário só. Ele cria o cadastro e o login, e mostra a senha temporária uma vez. Marque "Também pode usar este painel" para quem é da coordenação.
+4. Cadastre assistidas fictícias pelo formulário público ou em **Assistidas > Nova assistida**.
+5. Na página da assistida, escolha quem atende. Sem atendente, ninguém abre o prontuário, nem a coordenação nem o superusuário.
+6. Quem é da coordenação e também atende usa **Também vou atender** no painel, com o próprio login.
 
 ## 7. Conferir
 
@@ -108,7 +108,7 @@ curl.exe -i -H "Authorization: Bearer <CRON_SECRET>" https://<projeto>.vercel.ap
 A resposta deve ser `200` com `{"ok": true}`. Sem o cabeçalho, `404`.
 
 - [ ] A página inicial e o formulário de cadastro abrem com estilo e fontes.
-- [ ] Um cadastro fictício chega ao admin.
+- [ ] Um cadastro fictício aparece em `/painel/assistidas/`.
 - [ ] No **Table Editor** do Supabase, CPF e texto do prontuário aparecem começando com `gAAAA`.
 - [ ] Atendente sem vínculo recebe 404 no prontuário.
 - [ ] **Settings > Cron Jobs** mostra a rota `/manutencao/banco/`.

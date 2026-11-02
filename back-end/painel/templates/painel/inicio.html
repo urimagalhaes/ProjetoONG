@@ -1,0 +1,26 @@
+{% extends "painel/base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<h1>Olá, {{ request.user.first_name|default:request.user.get_username }}</h1>
+
+<div class="acoes">
+    <a class="btn" href="{% url 'painel_assistida_nova' %}">+ Nova assistida</a>
+    <a class="btn" href="{% url 'painel_pessoa_adicionar' %}">+ Adicionar à equipe</a>
+    {% if not eu_atendo %}<a class="btn sec" href="{% url 'painel_eu_atendo' %}">Também vou atender</a>{% endif %}
+</div>
+
+<div class="cartoes">
+    <a class="cartao{% if sem_atendente %} alerta{% endif %}" href="{% url 'painel_assistidas' %}?filtro=sem_atendente">
+        <strong>{{ sem_atendente }}</strong><span>assistida{{ sem_atendente|pluralize }} sem atendente</span>
+    </a>
+    <a class="cartao{% if pendencias %} alerta{% endif %}" href="{% url 'painel_pendencias' %}">
+        <strong>{{ pendencias }}</strong><span>pendência{{ pendencias|pluralize }} de cadastro</span>
+    </a>
+    <a class="cartao" href="{% url 'painel_equipe' %}">
+        <strong>{{ sem_acesso }}</strong><span>voluntário{{ sem_acesso|pluralize }} sem acesso</span>
+    </a>
+    <a class="cartao" href="{% url 'painel_atendimentos' %}">
+        <strong>{{ proximos }}</strong><span>atendimento{{ proximos|pluralize }} agendado{{ proximos|pluralize }}</span>
+    </a>
+</div>
+{% endblock %}

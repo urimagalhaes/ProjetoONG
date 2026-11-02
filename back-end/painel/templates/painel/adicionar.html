@@ -1,0 +1,34 @@
+{% extends "painel/base.html" %}
+{% load static %}
+{% block titulo %}Adicionar à equipe{% endblock %}
+{% block conteudo %}
+<p><a href="{% url 'painel_equipe' %}">← Voltar para a equipe</a></p>
+<h1>{% if para_mim %}Também vou atender{% else %}Adicionar à equipe{% endif %}</h1>
+<p class="meta">{% if para_mim %}Preencha seus dados uma vez. Você continua com o mesmo login e, depois, escolhe quem vai atender.{% else %}Preencha uma vez. O sistema cria o login e a senha temporária da pessoa.{% endif %}</p>
+
+<form method="post" class="form-interno card" id="form-pessoa">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset>
+        <legend>Função</legend>
+        {{ form.funcao.errors }}
+        <div class="opcoes">{% for opcao in form.funcao %}{{ opcao }}{% endfor %}</div>
+        <p data-funcao="advogado">{{ form.oab.label_tag }}{{ form.oab.errors }}{{ form.oab }}</p>
+        <p data-funcao="estagiario outra">{{ form.curso.label_tag }}{{ form.curso.errors }}{{ form.curso }}</p>
+        <p data-funcao="estagiario">{{ form.periodo.label_tag }}{{ form.periodo.errors }}{{ form.periodo }}</p>
+    </fieldset>
+    <fieldset>
+        <legend>Dados pessoais</legend>
+        <div class="grade-form">
+            {% for campo in form %}{% if campo.name not in 'funcao oab curso periodo coordenacao' %}
+            <p>{{ campo.label_tag }}{{ campo.errors }}{{ campo }}</p>
+            {% endif %}{% endfor %}
+        </div>
+    </fieldset>
+    {% if form.coordenacao %}
+    <p class="marcar">{{ form.coordenacao }} {{ form.coordenacao.label_tag }}</p>
+    {% endif %}
+    <button class="btn" type="submit">{% if para_mim %}Entrar para a equipe{% else %}Adicionar e criar acesso{% endif %}</button>
+</form>
+<script src="{% static 'front/script-painel.js' %}" defer></script>
+{% endblock %}

@@ -12,8 +12,8 @@
     <header class="topo-interno">
         <a href="{% url 'assistidas_lista' %}"><img src="{% static 'front/logotipo-cor.svg' %}" alt="Superação da Violência Doméstica" width="200" height="50"></a>
         <nav>
-            <a href="{% url 'assistidas_lista' %}">Assistidas</a>
-            {% if request.user.is_staff %}<a href="{% url 'admin:index' %}">Administração</a>{% endif %}
+            {% if pode_painel %}<a href="{% url 'painel_inicio' %}">Painel</a>{% endif %}
+            <a href="{% url 'assistidas_lista' %}">{% if pode_painel %}Meus atendimentos{% else %}Assistidas{% endif %}</a>
             <form class="sair" method="post" action="{% url 'sair' %}">
                 {% csrf_token %}
                 <button type="submit">Sair ({{ request.user.get_username }})</button>
@@ -21,6 +21,8 @@
         </nav>
     </header>
     <main class="conteudo-interno">
+        {% block abas %}{% endblock %}
+        {% for mensagem in messages %}<p class="mensagem {{ mensagem.tags }}">{{ mensagem }}</p>{% endfor %}
         {% block conteudo %}{% endblock %}
         <p class="aviso">Informações confidenciais. Acesso restrito à equipe autorizada.</p>
     </main>

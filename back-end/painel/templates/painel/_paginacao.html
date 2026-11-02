@@ -1,0 +1,7 @@
+{% if pagina.paginator.num_pages > 1 %}
+<p class="paginacao">
+    {% if pagina.has_previous %}<a href="?pagina={{ pagina.previous_page_number }}{{ extra }}">← Anterior</a>{% endif %}
+    <span class="meta">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a href="?pagina={{ pagina.next_page_number }}{{ extra }}">Próxima →</a>{% endif %}
+</p>
+{% endif %}

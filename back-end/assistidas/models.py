@@ -202,6 +202,8 @@ class RegistroAcesso(models.Model):
         ('vinculo_encerrado', 'Vínculo encerrado'),
         ('usuario_vinculado', 'Login ligado a voluntário'),
         ('senha_redefinida', 'Senha redefinida por terceiro'),
+        ('acesso_alterado', 'Acesso de usuário alterado'),
+        ('cadastro_alterado', 'Cadastro de assistida alterado'),
     ]
 
     id_acesso = models.AutoField(primary_key=True)

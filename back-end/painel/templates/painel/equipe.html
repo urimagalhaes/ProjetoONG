@@ -1,0 +1,33 @@
+{% extends "painel/base.html" %}
+{% block titulo %}Equipe{% endblock %}
+{% block conteudo %}
+<h1>Equipe</h1>
+<div class="acoes">
+    <a class="btn" href="{% url 'painel_pessoa_adicionar' %}">+ Adicionar à equipe</a>
+    {% if not eu_atendo %}<a class="btn sec" href="{% url 'painel_eu_atendo' %}">Também vou atender</a>{% endif %}
+</div>
+<form class="busca" method="get">
+    <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome" aria-label="Buscar">
+    <button class="btn" type="submit">Buscar</button>
+</form>
+<div class="card">
+    {% if pagina.object_list %}
+    <div class="tabela-rolagem"><table>
+        <thead><tr><th>Nome</th><th>Função</th><th>Atende</th><th>Acesso</th></tr></thead>
+        <tbody>
+        {% for p in pagina %}
+            <tr>
+                <td><a href="{% url 'painel_pessoa' p.pk %}">{{ p.nomecompleto_voluntario }}</a></td>
+                <td>{{ p.funcao }}</td>
+                <td>{{ p.total_assistidas }}</td>
+                <td>{% if not p.usuario %}<span class="tag alerta">Sem acesso</span>{% elif not p.usuario.is_active %}<span class="tag">Desativado</span>{% else %}<span class="tag">Ativo</span>{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% include "painel/_paginacao.html" %}
+    {% else %}
+    <p class="vazio">Ninguém encontrado.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -18,7 +18,7 @@
 
 <div class="acoes">
     <a class="btn" href="{% url 'registro_novo' assistida.pk %}">+ Novo registro</a>
-    {% if perms.assistidas.change_assistida %}<a class="btn sec" href="{% url 'admin:assistidas_assistida_change' assistida.pk %}">Editar cadastro</a>{% endif %}
+    {% if pode_painel %}<a class="btn sec" href="{% url 'painel_assistida' assistida.pk %}">Ver cadastro</a>{% endif %}
 </div>
 
 {% for r in registros %}

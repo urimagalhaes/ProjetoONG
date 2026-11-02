@@ -1,0 +1,13 @@
+{% extends "painel/base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<p><a href="{{ voltar }}">← Voltar</a></p>
+<h1>{{ titulo }}</h1>
+<div class="card">
+    <form method="post" class="form-interno">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Salvar</button>
+    </form>
+</div>
+{% endblock %}

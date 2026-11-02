@@ -126,7 +126,7 @@ class RegistroTests(Base):
     def test_atendente_nao_ve_link_de_editar_cadastro(self):
         self.client.force_login(self.atendente)
         r = self.client.get(reverse('assistida_prontuario', args=[self.maria.pk]))
-        self.assertNotContains(r, 'Editar cadastro')
+        self.assertNotContains(r, 'Ver cadastro')
         self.assertNotContains(r, '/admin/')
 
     def test_atendente_nao_entra_no_admin(self):

@@ -1,0 +1,12 @@
+{% extends "assistidas/base_interno.html" %}
+{% block abas %}
+<nav class="abas" aria-label="Painel">
+    <a href="{% url 'painel_inicio' %}">Início</a>
+    <a href="{% url 'painel_assistidas' %}">Assistidas</a>
+    <a href="{% url 'painel_equipe' %}">Equipe</a>
+    <a href="{% url 'painel_atendimentos' %}">Agenda</a>
+    <a href="{% url 'painel_pendencias' %}">Pendências</a>
+    <a href="{% url 'painel_acessos' %}">Acessos</a>
+    {% if request.user.is_superuser %}<a href="{% url 'admin:index' %}">Admin técnico</a>{% endif %}
+</nav>
+{% endblock %}

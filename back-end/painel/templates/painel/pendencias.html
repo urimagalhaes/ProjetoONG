@@ -1,0 +1,18 @@
+{% extends "painel/base.html" %}
+{% block titulo %}Pendências{% endblock %}
+{% block conteudo %}
+<h1>Pendências de cadastro</h1>
+<p class="meta">Envios do site com CPF ou OAB que já existem. Confira se algo precisa ser atualizado no cadastro e marque como resolvida.</p>
+{% for p in pagina %}
+<div class="card">
+    <div class="titulo-acao">
+        <h2>{{ p.get_tipo_display }} · {{ p.criado_em|date:"d/m/Y H:i" }}</h2>
+        <form method="post" action="{% url 'painel_pendencia_resolver' p.pk %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Resolvida</button></form>
+    </div>
+    <dl class="dados">{% for chave, valor in p.dados.items %}<dt>{{ chave }}</dt><dd>{{ valor|default:"—" }}</dd>{% endfor %}</dl>
+</div>
+{% empty %}
+<div class="card"><p class="vazio">Nenhuma pendência. Tudo em dia!</p></div>
+{% endfor %}
+{% include "painel/_paginacao.html" %}
+{% endblock %}

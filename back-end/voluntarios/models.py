@@ -28,7 +28,7 @@ class Voluntario(models.Model):
     cidade_voluntario = models.CharField(max_length=30)
     estado_voluntario = models.CharField(max_length=2)
     endereco_voluntario = CampoCifrado(max_length=50)
-    telefone_voluntario = CampoCifrado(max_length=9)
+    telefone_voluntario = CampoCifrado(max_length=11)
     instagram_voluntario = models.CharField(max_length=30, blank=True, default='')
     cpf_voluntario = CampoCifrado(max_length=14)
     cpf_hash_voluntario = models.CharField(max_length=64, unique=True, editable=False, blank=True)
@@ -60,6 +60,14 @@ class Voluntario(models.Model):
         if hasattr(self, 'bacharel'):
             return 'Bacharel'
         return 'Voluntário(a)'
+
+    @property
+    def funcao(self):
+        """Como a equipe chama a pessoa: um bacharel aparece pela formação."""
+        if hasattr(self, 'bacharel') and not hasattr(self, 'estagiario') and not hasattr(self, 'advogado'):
+            return self.bacharel.cursoformacao_bacharel
+        return self.tipo
+
 
 class Estagiario(models.Model):
     PERIODOS = [

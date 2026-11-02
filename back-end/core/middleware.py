@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from .models import ContaInterna
 
 # Áreas com dados internos. Uma área nova precisa entrar aqui.
-PREFIXOS_INTERNOS = ('/assistidas/', '/admin/')
+PREFIXOS_INTERNOS = ('/assistidas/', '/painel/', '/admin/')
 
 
 class ExigenciasDeContaMiddleware:

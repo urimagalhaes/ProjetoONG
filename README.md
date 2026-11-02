@@ -31,7 +31,8 @@ Sistema web desenvolvido para uma ONG que acolhe e orienta **mulheres em situaç
 - **Site institucional:** página inicial, notícias, programa de voluntários e páginas de cadastro.
 - **Cadastro de assistidas:** formulário público com preenchimento automático do endereço pelo CEP.
 - **Cadastro de voluntários:** formulários separados para advogado, bacharel e estagiário, com a disponibilidade semanal dos estagiários.
-- **Painel de administração** (`/admin/`): cadastros, voluntários, atendimentos, vínculos, usuários, registro de acessos e direitos da titular. **Não dá acesso a prontuários.**
+- **Painel da coordenação** (`/painel/`): assistidas e quem as atende, equipe em um formulário só, agenda, pendências, registro de acessos e direitos da titular. **Não mostra prontuários.**
+- **Admin técnico** (`/admin/`): disponibilidade de estagiários e recuperação de 2FA.
 - **Lista de assistidas:** mostra só as assistidas vinculadas a quem está logado, com busca por nome, apelido ou CPF completo.
 - **Prontuário da assistida:** só abre com vínculo ativo, inclusive para a coordenação e para superusuários. O autor vem do login; só ele edita, e cada edição guarda o texto anterior.
 - **Segurança:** dados pessoais cifrados no banco, registro de acessos, login com 2FA e bloqueio de tentativas.
@@ -96,7 +97,8 @@ O comando `seed_dev` cria dados **fictícios** (assistidas, voluntários e pront
 | Entrar | `/entrar/` | Equipe |
 | Lista de assistidas | `/assistidas/` | Login; mostra só as vinculadas |
 | Prontuário da assistida | `/assistidas/<id>/prontuario/` | Só com vínculo ativo |
-| Administração | `/admin/` | Coordenação |
+| Painel | `/painel/` | Coordenação |
+| Admin técnico | `/admin/` | Coordenação (uso técnico) |
 | API: cadastrar assistida (`POST` JSON) | `/api/assistidas/adicionar/` | Público |
 | API: cadastrar voluntário (`POST` JSON) | `/api/voluntarios/adicionar/{estagiario,advogado,bacharel}/` | Público |
 

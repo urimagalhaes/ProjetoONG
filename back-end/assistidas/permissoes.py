@@ -20,6 +20,11 @@ def e_coordenacao(usuario):
     return usuario.is_authenticated and usuario.groups.filter(name=GRUPO_COORDENACAO).exists()
 
 
+def pode_usar_painel(usuario):
+    """Só abre a gestão. Não dá acesso a prontuário."""
+    return usuario.is_authenticated and (usuario.is_superuser or e_coordenacao(usuario))
+
+
 def tem_vinculo_ativo(usuario, id_assistida):
     voluntario = voluntario_de(usuario)
     if voluntario is None:

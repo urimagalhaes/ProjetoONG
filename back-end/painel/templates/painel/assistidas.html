@@ -1,0 +1,31 @@
+{% extends "painel/base.html" %}
+{% block titulo %}Assistidas{% endblock %}
+{% block conteudo %}
+<h1>Assistidas</h1>
+<div class="acoes"><a class="btn" href="{% url 'painel_assistida_nova' %}">+ Nova assistida</a></div>
+<form class="busca" method="get">
+    <input type="search" name="q" value="{{ busca }}" placeholder="Buscar por nome, apelido ou CPF completo" aria-label="Buscar">
+    <button class="btn" type="submit">Buscar</button>
+    {% if busca or so_sem_atendente %}<a class="btn sec" href="{% url 'painel_assistidas' %}">Limpar</a>{% endif %}
+</form>
+<div class="card">
+    {% if pagina.object_list %}
+    <div class="tabela-rolagem"><table>
+        <thead><tr><th>Nome</th><th>Idade</th><th>Cidade/UF</th><th>Atendentes</th></tr></thead>
+        <tbody>
+        {% for a in pagina %}
+            <tr>
+                <td><a href="{% url 'painel_assistida' a.pk %}">{{ a.nome_assistida }}</a>{% if a.apelido_assistida %} <span class="meta">({{ a.apelido_assistida }})</span>{% endif %}</td>
+                <td>{{ a.idade_assistida }}</td>
+                <td>{{ a.cidade_assistida }}/{{ a.estado_assistida }}</td>
+                <td>{% if a.anonimizada %}<span class="tag">Anonimizada</span>{% elif a.total_atendentes %}{{ a.total_atendentes }}{% else %}<span class="tag alerta">Sem atendente</span>{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% include "painel/_paginacao.html" %}
+    {% else %}
+    <p class="vazio">Nenhuma assistida encontrada.</p>
+    {% endif %}
+</div>
+{% endblock %}

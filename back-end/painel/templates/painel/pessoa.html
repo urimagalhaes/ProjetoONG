@@ -1,0 +1,49 @@
+{% extends "painel/base.html" %}
+{% block titulo %}{{ pessoa.nomecompleto_voluntario }}{% endblock %}
+{% block conteudo %}
+<p><a href="{% url 'painel_equipe' %}">← Voltar para a equipe</a></p>
+<h1>{{ pessoa.nomecompleto_voluntario }} <span class="tag">{{ pessoa.funcao }}</span></h1>
+
+<div class="card">
+    <h2>Acesso ao sistema</h2>
+    {% if not pessoa.usuario %}
+    <p class="meta">Esta pessoa ainda não tem login e não pode atender.</p>
+    <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'criar' %}">{% csrf_token %}<button class="btn" type="submit">Criar acesso</button></form>
+    {% else %}
+    <p class="meta">Usuário <code>{{ pessoa.usuario.get_username }}</code> · {% if pessoa.usuario.is_active %}ativo{% else %}desativado{% endif %}{% if na_coordenacao %} · coordenação{% endif %}</p>
+    <div class="acoes">
+        <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'redefinir' %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Gerar nova senha</button></form>
+        {% if not sou_eu %}
+        {% if na_coordenacao %}
+        <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'tirar_coordenacao' %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Retirar da coordenação</button></form>
+        {% else %}
+        <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'dar_coordenacao' %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Colocar na coordenação</button></form>
+        {% endif %}
+        {% if pessoa.usuario.is_active %}
+        <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'desativar' %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Desativar acesso</button></form>
+        {% else %}
+        <form method="post" action="{% url 'painel_pessoa_acesso' pessoa.pk 'reativar' %}">{% csrf_token %}<button class="btn sec pequeno" type="submit">Reativar acesso</button></form>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Assistidas que atende</h2>
+    {% for v in vinculos %}
+    <div class="linha"><a href="{% url 'painel_assistida' v.assistida_id %}">{{ v.assistida.nome_assistida }}</a></div>
+    {% empty %}
+    <p class="meta">Nenhuma por enquanto. O atendimento é definido na página da assistida.</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>Dados</h2>
+    <form method="post" class="form-interno">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Salvar</button>
+    </form>
+</div>
+{% endblock %}

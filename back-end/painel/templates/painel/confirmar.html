@@ -1,0 +1,14 @@
+{% extends "painel/base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+<div class="card">
+    <p><strong>{{ assistida.nome_assistida }}</strong></p>
+    <p>{{ aviso }}</p>
+    <form class="acoes" method="post">
+        {% csrf_token %}
+        <button class="btn" type="submit">{{ botao }}</button>
+        <a class="btn sec" href="{% url 'painel_assistida' assistida.pk %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
